@@ -20,7 +20,7 @@ __config_help__ = [{
     'name': 'addr',
     'help': 'Device address on bus, hexdecimal (default: 0x76)',
     'type': 'hex',
-    'required': True
+    'required': False
 }]
 __get_help__ = []
 __set_help__ = []
