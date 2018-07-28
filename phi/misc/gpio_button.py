@@ -8,7 +8,7 @@ __id__ = 'gpio_button'
 __equipment__ = 'GPIO buttons'
 __api__ = 1
 __required__ = []
-__features__ = []
+__features__ = ['events']
 __mods_required__ = 'gpiozero'
 __lpi_default__ = 'sensor'
 __config_help__ = [{
@@ -28,7 +28,7 @@ __set_help__ = []
 __help__ = """ Handling pressed events from GPIO buttons.
 
 PHI doesn't provide any control/monitoring functions, each button can be
-configured as unit (via basic LPI) or sensor (via esensor) and contain its port
+configured as unit (via basic LPI) or sensor (via sensor) and contain its port
 in update_driver_config, update_interval should be set to 0.
 """
 
