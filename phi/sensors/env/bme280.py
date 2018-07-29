@@ -8,7 +8,7 @@ __id__ = 'bme280'
 __equipment__ = ['BME280']
 __api__ = 1
 __required__ = ['aao_get', 'value']
-__mods_required__ = []
+__mods_required__ = ['smbus2']
 __lpi_default__ = 'sensor'
 __features__ = ['aao_get']
 __config_help__ = [{
@@ -36,7 +36,7 @@ from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
 from eva.uc.driverapi import log_traceback
 from eva.uc.driverapi import get_timeout
 
-import eva.uc.smbus as smbus
+import eva.uc.i2cbus
 
 import os
 import importlib
@@ -68,6 +68,12 @@ class PHI(GenericPHI):
         self.aao_get = True
         if info_only: return
         try:
+            self.smbus2 = importlib.import_module('smbus2')
+        except:
+            self.log_error('unable to load smbus2 python module')
+            self.ready = False
+            return
+        try:
             self.bus = int(self.phi_cfg.get('bus'))
         except:
             self.log_error('I2C bus not specified')
@@ -81,9 +87,9 @@ class PHI(GenericPHI):
 
     def get(self, port=None, cfg=None, timeout=0):
         try:
-            b = smbus.get(self.bus)
-            if not b:
-                raise Exception('Unable to acquire I2C bus %s ' % self.bus)
+            if not eva.uc.i2cbus.lock(self.bus):
+                raise Exception('Unable to lock I2C bus %s ' % self.bus)
+            b = self.smbus2.SMBus(self.bus)
             time_start = time.time()
             rd = False
             while time_start + timeout >= time.time():
@@ -95,7 +101,7 @@ class PHI(GenericPHI):
                 except:
                     pass
                 time.sleep(bus_delay)
-            smbus.release(self.bus)
+            eva.i2cbus.release(self.bus)
             if not rd: raise Exception('data read error')
             return {
                 't': int(t * 100) / 100.0,
@@ -109,15 +115,15 @@ class PHI(GenericPHI):
     def test(self, cmd=None):
         if cmd == 'self' or cmd == 'info':
             try:
-                b = smbus.get(self.bus)
-                if not b:
+                if not eva.uc.i2cbus.lock(self.bus):
                     raise Exception('Unable to acquire I2C bus %s ' % self.bus)
+                b = self.smbus2.SMBus(self.bus)
                 try:
                     i, v = self.readBME280ID(bus=b, addr=self.addr)
                 except:
-                    smbus.release(self.bus)
+                    eva.i2cbus.release(self.bus)
                     raise
-                smbus.release(self.bus)
+                eva.i2cbus.release(self.bus)
                 if i is None or v is None: raise Exception('data read error')
             except:
                 log_traceback()
