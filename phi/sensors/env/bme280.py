@@ -101,7 +101,7 @@ class PHI(GenericPHI):
                 except:
                     pass
                 time.sleep(bus_delay)
-            eva.i2cbus.release(self.bus)
+            eva.uc.i2cbus.release(self.bus)
             if not rd: raise Exception('data read error')
             return {
                 't': int(t * 100) / 100.0,
@@ -121,9 +121,9 @@ class PHI(GenericPHI):
                 try:
                     i, v = self.readBME280ID(bus=b, addr=self.addr)
                 except:
-                    eva.i2cbus.release(self.bus)
+                    eva.uc.i2cbus.release(self.bus)
                     raise
-                eva.i2cbus.release(self.bus)
+                eva.uc.i2cbus.release(self.bus)
                 if i is None or v is None: raise Exception('data read error')
             except:
                 log_traceback()
