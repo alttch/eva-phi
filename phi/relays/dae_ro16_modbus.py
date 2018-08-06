@@ -95,7 +95,9 @@ class PHI(GenericPHI):
                 log_traceback()
                 return 'FAILED'
         else:
-            return {'id': 'change relay slave ID (1..247), relay reboot required'}
+            return {
+                'id': 'change relay slave ID (1..247), relay reboot required'
+            }
 
     def get(self, port=None, cfg=None, timeout=0):
         mb = modbus.get_port(self.modbus_port, timeout)
