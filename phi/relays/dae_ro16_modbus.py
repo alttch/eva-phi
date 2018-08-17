@@ -111,7 +111,6 @@ class PHI(GenericPHI):
                 result[str(i + 1)] = 1 if rr.bits[i] else 0
         except:
             result = None
-        mb.release()
         return result
 
     def set(self, port=None, data=None, cfg=None, timeout=0):
