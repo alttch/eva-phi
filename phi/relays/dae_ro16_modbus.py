@@ -115,15 +115,15 @@ class PHI(GenericPHI):
 
     def set(self, port=None, data=None, cfg=None, timeout=0):
         try:
-            port = int(port)
+            p = int(port)
             val = int(data)
         except:
             return False
-        if port < 1 or port > self.port_max or val < 0 or val > 1: return False
+        if p < 1 or p > self.port_max or val < 0 or val > 1: return False
         mb = modbus.get_port(self.modbus_port, timeout)
         if not mb: return None
         result = mb.write_coil(
-            port - 1, True if val else False, unit=self.unit_id)
+            p - 1, True if val else False, unit=self.unit_id)
         mb.release()
         return not result.isError()
 
