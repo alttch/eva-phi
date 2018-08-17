@@ -14,7 +14,7 @@ __features__ = ['aao_get', 'port_set']
 __config_help__ = [{
     'name': 'port',
     'help': 'ModBus port ID',
-    'tyoe': 'str',
+    'type': 'str',
     'required': True
 }, {
     'name': 'unit',
