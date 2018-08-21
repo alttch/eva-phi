@@ -14,7 +14,7 @@ __lpi_default__ = 'sensor'
 __config_help__ = [{
     'name': 'port',
     'help': 'gpio port(s) with buttons',
-    'type': 'list:str',
+    'type': 'list:int',
     'required': False
 }, {
     'name': 'no_pullup',
