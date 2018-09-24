@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "https://www.eva-ics.com/license"
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 __description__ = "EG-PM2-LAN smart PDU"
 
 __id__ = 'eg_pm2lan'
@@ -138,10 +138,8 @@ class PHI(GenericPHI):
             return None
 
     def set(self, port=None, data=None, cfg=None, timeout=0):
-        if not port or not data: return False
+        if not port or data is None: return False
         t_start = time()
-        if not isinstance(port, str):
-            return False
         try:
             socket = int(port)
         except:
@@ -160,7 +158,7 @@ class PHI(GenericPHI):
                     'remote http code %s on port set' % r.status_code)
             # the remote doesn't return any errors, so just check the socket
             result = self._parse_response(r.text)
-            if result.get(port) != data:
+            if result.get(str(port)) != data:
                 raise Exception('port %s set failed' % port)
             try:
                 if not self.skip_logout:
