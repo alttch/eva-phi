@@ -10,7 +10,7 @@ __api__ = 2
 __required__ = ['port_get', 'port_set']
 __mods_required__ = []
 __lpi_default__ = 'usp'
-__features__ = ['port_get', 'port_set']
+__features__ = ['port_get', 'port_set', 'events']
 __config_help__ = [{
     'name': 't',
     'help': 'MQTT full topic',
@@ -27,7 +27,7 @@ __set_help__ = []
 __help__ = """
 PHI for ITead Sonoff Basic. Uses one of system MQTT notifiers for
 communication. Requires Tasmota firmware (compatible with all single port
-devices)
+devices, for multi-ports use sonoff_mch)
 """
 
 import json
