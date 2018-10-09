@@ -2,7 +2,7 @@ __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "https://www.eva-ics.com/license"
 __version__ = "1.0.0"
-__description__ = "Sonoff Multichannel WiFi relay"
+__description__ = "Sonoff multi-channel WiFi relay"
 
 __id__ = 'sonoff_mch'
 __equipment__ = 'ITead multi-port (Tasmota)'
@@ -99,7 +99,7 @@ class PHI(GenericPHI):
         except:
             return
         self.current_status[str(port)] = 1 if data == 'ON' else 0
-        handle_phi_event(self, port, { str(port): 1 if data == 'ON' else 0 })
+        handle_phi_event(self, port, {str(port): 1 if data == 'ON' else 0})
 
     def mqtt_state_handler(self, data, topic, qos, retain):
         try:
@@ -122,7 +122,8 @@ class PHI(GenericPHI):
 
     def stop(self):
         for ch in range(1, self.channels + 1):
-            self.mqtt.unregister(self.topic + '/POWER%u' % ch, self.mqtt_handler)
+            self.mqtt.unregister(self.topic + '/POWER%u' % ch,
+                                 self.mqtt_handler)
         self.mqtt.unregister(self.topic + '/STATE', self.mqtt_state_handler)
 
     def test(self, cmd=None):
