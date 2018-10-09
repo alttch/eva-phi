@@ -5,7 +5,7 @@ __version__ = "1.0.0"
 __description__ = "Sonoff Basic WiFi relay"
 
 __id__ = 'sonoff_basic'
-__equipment__ = 'ITead Sonoff Basic'
+__equipment__ = 'ITead 1-port (Tasmota)'
 __api__ = 2
 __required__ = ['port_get', 'port_set']
 __mods_required__ = []
@@ -25,8 +25,9 @@ __config_help__ = [{
 __get_help__ = []
 __set_help__ = []
 __help__ = """
-PHI for ITead Sonoff Basic. Uses one of system MQTT notifiers
-for communication. Requires Tasmota firmware.
+PHI for ITead Sonoff Basic. Uses one of system MQTT notifiers for
+communication. Requires Tasmota firmware (compatible with all single port
+devices)
 """
 
 import json
