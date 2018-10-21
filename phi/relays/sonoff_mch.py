@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "https://www.eva-ics.com/license"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __description__ = "Sonoff multi-channel WiFi relay"
 
 __id__ = 'sonoff_mch'
@@ -74,7 +74,7 @@ class PHI(GenericPHI):
             self.ready = False
         else:
             for ch in range(1, self.channels + 1):
-                self.current_status[ch] = None
+                self.current_status[str(ch)] = None
 
     def get(self, port=None, cfg=None, timeout=0):
         return self.current_status
