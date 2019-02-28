@@ -9,7 +9,7 @@ __equipment__ = ['Any 1-Wire sensor']
 __api__ = 3
 __required__ = ['port_get', 'value']
 __mods_required__ = []
-__lpi_default__ = 'sensor'
+__lpi_default__ = 'ssp'
 __features__ = ['port_get', 'universal']
 __config_help__ = [{
     'name': 'owfs',
