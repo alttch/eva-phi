@@ -30,8 +30,6 @@ __config_help__ = [{
 __get_help__ = __config_help__
 __set_help__ = __config_help__
 
-w1_delay = 0.5
-
 __help__ = """
 PHI for Maxim Integrated 1-Wire equipment working via OWFS.
 
@@ -108,5 +106,5 @@ class PHI(GenericPHI):
         else:
             return {
                 'get':
-                'Get value (if owfs, path and attr are defined in PHI config'
+                'Get value (if owfs, path and attr are defined in PHI config)'
             }
