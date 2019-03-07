@@ -79,7 +79,10 @@ class PHI(GenericPHI):
         bus = owfs.get_bus(owfs_bus)
         if not bus: return None
         try:
-            return {attr: bus.read(path, attr)}
+            value = bus.read(path, attr)
+            if not value:
+                raise Exception('can not obtain value')
+            return {attr: value}
         except:
             return None
         finally:
