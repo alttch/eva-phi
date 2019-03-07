@@ -79,8 +79,7 @@ class PHI(GenericPHI):
         bus = owfs.get_bus(owfs_bus)
         if not bus: return None
         try:
-            s = bus.ow.sensor(path)
-            return {attr: getattr(s, attr)}
+            return {attr: bus.read(path, attr)}
         except:
             return None
         finally:
@@ -93,9 +92,9 @@ class PHI(GenericPHI):
                 if not bus: return 'FAILED'
                 try:
                     if self.path:
-                        s = bus.ow.sensor(self.path)
+                        a = self.attr if self.attr else 'type'
+                        s = bus.read(self.path, a)
                         if not s: return 'FAILED'
-                        if self.attr: getattr(s, self.attr)
                 except:
                     return 'FAILED'
                 finally:
