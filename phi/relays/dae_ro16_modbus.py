@@ -1,12 +1,11 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __description__ = "Denkovi ModBus relay DAE-RO16"
 
-__id__ = 'dae_ro16_modbus'
+__api__ = 4
 __equipment__ = 'DAE-RO16-MODBUS'
-__api__ = 1
 __required__ = ['aao_get', 'port_set', 'status', 'action']
 __mods_required__ = []
 __lpi_default__ = 'basic'
@@ -36,27 +35,13 @@ from eva.uc.driverapi import get_timeout
 
 import eva.uc.modbus as modbus
 
+from eva.uc.driverapi import phi_constructor
+
 
 class PHI(GenericPHI):
 
-    def __init__(self, phi_cfg=None, info_only=False):
-        super().__init__(phi_cfg=phi_cfg, info_only=info_only)
-        self.phi_mod_id = __id__
-        self.__author = __author__
-        self.__license = __license__
-        self.__description = __description__
-        self.__version = __version__
-        self.__api_version = __api__
-        self.__equipment = __equipment__
-        self.__features = __features__
-        self.__required = __required__
-        self.__mods_required = __mods_required__
-        self.__lpi_default = __lpi_default__
-        self.__config_help = __config_help__
-        self.__get_help = __get_help__
-        self.__set_help = __set_help__
-        self.__help = __help__
-        if info_only: return
+    @phi_constructor
+    def __init__(self, **kwargs):
         self.aao_get = True
         self.port_max = 16
         self.modbus_port = self.phi_cfg.get('port')
@@ -122,8 +107,7 @@ class PHI(GenericPHI):
         if p < 1 or p > self.port_max or val < 0 or val > 1: return False
         mb = modbus.get_port(self.modbus_port, timeout)
         if not mb: return None
-        result = mb.write_coil(
-            p - 1, True if val else False, unit=self.unit_id)
+        result = mb.write_coil(p - 1, True if val else False, unit=self.unit_id)
         mb.release()
         return not result.isError()
 
