@@ -1,12 +1,11 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __description__ = "1-Wire OWFS DS2408 relay"
 
-__id__ = 'ow_ds2408'
 __equipment__ = ['DS2408']
-__api__ = 3
+__api__ = 4
 __required__ = ['port_get', 'status', 'action']
 __mods_required__ = []
 __lpi_default__ = 'basic'
@@ -37,27 +36,13 @@ from eva.uc.driverapi import log_traceback
 
 import eva.uc.owfs as owfs
 
+from eva.uc.driverapi import phi_constructor
+
 
 class PHI(GenericPHI):
 
-    def __init__(self, phi_cfg=None, info_only=False):
-        super().__init__(phi_cfg=phi_cfg, info_only=info_only)
-        self.phi_mod_id = __id__
-        self.__author = __author__
-        self.__license = __license__
-        self.__description = __description__
-        self.__version = __version__
-        self.__api_version = __api__
-        self.__equipment = __equipment__
-        self.__features = __features__
-        self.__required = __required__
-        self.__mods_required = __mods_required__
-        self.__lpi_default = __lpi_default__
-        self.__config_help = __config_help__
-        self.__get_help = __get_help__
-        self.__set_help = __set_help__
-        self.__help = __help__
-        if info_only: return
+    @phi_constructor
+    def __init__(self, **kwargs):
         self.owfs_bus = self.phi_cfg.get('owfs')
         self.path = self.phi_cfg.get('path')
 

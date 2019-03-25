@@ -19,6 +19,8 @@ while True:
             print('API version is {}, conversion not required'.format(api_ver))
             exit()
         result.append('__api__ = 4\n')
+    elif l.startswith('__id__'):
+        i += 1
     elif l.startswith('__version__'):
         ver = l.split('=')[1].strip().replace('"', '')
         major, minor, release = ver.split('.')
@@ -40,4 +42,7 @@ while True:
     if i >= len(data): break
 
 content = ''.join(result)
-print(content)
+if len(sys.argv)>2 and sys.argv[2] == 'i':
+    open(sys.argv[1], 'w').write(content)
+else:
+    print(content)
