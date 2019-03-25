@@ -9,7 +9,7 @@ __api__ = 4
 __required__ = ['port_get', 'value']
 __mods_required__ = []
 __lpi_default__ = 'ssp'
-__features__ = ['port_get', 'universal']
+__features__ = ['port_get', 'universal', 'aao_get']
 __config_help__ = [{
     'name': 'owfs',
     'help': 'OWFS virtual bus',
@@ -52,6 +52,7 @@ class PHI(GenericPHI):
         self.owfs_bus = self.phi_cfg.get('owfs')
         self.path = self.phi_cfg.get('path')
         self.attr = self.phi_cfg.get('attr')
+        self.aao_get = True
 
     def get(self, port=None, cfg=None, timeout=0):
         owfs_bus = self.owfs_bus
