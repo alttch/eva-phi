@@ -1,15 +1,14 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __description__ = "GPIO power"
 
-__id__ = 'gpio_power'
-__equipment__ = 'GPIO'
-__api__ = 1
+__api__ = 4
 __required__ = []
 __mods_required__ = 'gpiozero'
-__lpi_default__ = None
+__lpi_default__ = 'sensor'
+__equipment__ = 'GPIO'
 __features__ = []
 __config_help__ = [{
     'name': 'port',
@@ -32,27 +31,13 @@ from eva.uc.driverapi import log_traceback
 import os
 import importlib
 
+from eva.uc.driverapi import phi_constructor
+
 
 class PHI(GenericPHI):
 
-    def __init__(self, phi_cfg=None, info_only=False):
-        super().__init__(phi_cfg=phi_cfg, info_only=info_only)
-        self.phi_mod_id = __id__
-        self.__author = __author__
-        self.__license = __license__
-        self.__description = __description__
-        self.__version = __version__
-        self.__api_version = __api__
-        self.__equipment = __equipment__
-        self.__features = __features__
-        self.__required = __required__
-        self.__mods_required = __mods_required__
-        self.__lpi_default = __lpi_default__
-        self.__config_help = __config_help__
-        self.__get_help = __get_help__
-        self.__set_help = __set_help__
-        self.__help = __help__
-        if info_only: return
+    @phi_constructor
+    def __init__(self, **kwargs):
         self.ports = self.phi_cfg.get('port')
         self.devices = []
 

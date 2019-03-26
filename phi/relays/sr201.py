@@ -1,15 +1,14 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __description__ = "SR-201 relay"
 
-__id__ = 'sr201'
-__equipment__ = 'SR-201'
-__api__ = 1
+__api__ = 4
 __required__ = ['aao_get', 'port_set', 'status', 'action']
 __mods_required__ = []
 __lpi_default__ = 'basic'
+__equipment__ = 'SR-201'
 __features__ = ['aao_get', 'port_set', 'universal']
 __config_help__ = [{
     'name': 'host',
@@ -39,26 +38,13 @@ from eva.tools import parse_host_port
 
 import socket
 
+from eva.uc.driverapi import phi_constructor
+
+
 class PHI(GenericPHI):
 
-    def __init__(self, phi_cfg=None, info_only=False):
-        super().__init__(phi_cfg=phi_cfg, info_only=info_only)
-        self.phi_mod_id = __id__
-        self.__author = __author__
-        self.__license = __license__
-        self.__description = __description__
-        self.__version = __version__
-        self.__api_version = __api__
-        self.__equipment = __equipment__
-        self.__features = __features__
-        self.__required = __required__
-        self.__mods_required = __mods_required__
-        self.__lpi_default = __lpi_default__
-        self.__config_help = __config_help__
-        self.__get_help = __get_help__
-        self.__set_help = __set_help__
-        self.__help = __help__
-        if info_only: return
+    @phi_constructor
+    def __init__(self, **kwargs):
         self.port_max = 8
         self.aao_get = True
         self.relay_host, self.relay_port = parse_host_port(
@@ -87,7 +73,7 @@ class PHI(GenericPHI):
             except:
                 sock.close()
                 raise
-            if len(res) <8 : raise Exception('bad data received')
+            if len(res) < 8: raise Exception('bad data received')
             result = {}
             for i in range(8):
                 result[str(i + 1)] = int(res[i])

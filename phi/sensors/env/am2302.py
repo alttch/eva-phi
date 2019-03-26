@@ -1,15 +1,14 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __description__ = "DHT11, DHT22, AM3202 temperature/humidity sensors"
 
-__id__ = 'am2302'
-__equipment__ = ['DHT11', 'DHT22', 'AM2302']
-__api__ = 1
+__api__ = 4
 __required__ = ['aao_get', 'value']
 __mods_required__ = 'Adafruit_DHT'
 __lpi_default__ = 'sensor'
+__equipment__ = ['DHT11', 'DHT22', 'AM3202']
 __features__ = ['aao_get']
 __config_help__ = [{
     'name': 'port',
@@ -43,28 +42,13 @@ from eva.uc.driverapi import get_timeout
 import os
 import importlib
 
+from eva.uc.driverapi import phi_constructor
+
 
 class PHI(GenericPHI):
 
-    def __init__(self, phi_cfg=None, info_only=False):
-        super().__init__(phi_cfg=phi_cfg, info_only=info_only)
-        self.phi_mod_id = __id__
-        self.__author = __author__
-        self.__license = __license__
-        self.__description = __description__
-        self.__version = __version__
-        self.__api_version = __api__
-        self.__equipment = __equipment__
-        self.__features = __features__
-        self.__required = __required__
-        self.__mods_required = __mods_required__
-        self.__lpi_default = __lpi_default__
-        self.__config_help = __config_help__
-        self.__get_help = __get_help__
-        self.__set_help = __set_help__
-        self.__help = __help__
-        self.aao_get = True
-        if info_only: return
+    @phi_constructor
+    def __init__(self, **kwargs):
         try:
             importlib.import_module('Adafruit_DHT')
         except:
@@ -110,7 +94,7 @@ class PHI(GenericPHI):
                 delay_seconds=bus_delay)
             if h is not None: h = int(h * 1000) / 1000.0
             if t is not None: t = int(t * 1000) / 1000.0
-            return { 'h': h, 't': t }
+            return {'h': h, 't': t}
         except:
             log_traceback()
             return None
