@@ -8,7 +8,7 @@ __api__ = 4
 __required__ = ['port_get', 'port_set']
 __mods_required__ = []
 __lpi_default__ = 'basic'
-__equipment__ = ['Sonoff 2-3-4 port switch']
+__equipment__ = ['ITead multi-port (Tasmota)']
 __features__ = ['port_get', 'port_set', 'events']
 __config_help__ = [{
     'name': 't',
