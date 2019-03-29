@@ -64,7 +64,7 @@ class PHI(GenericPHI):
         server = (relay_host, relay_port)
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(timeout - 1)
+            sock.settimeout(timeout)
             try:
                 sock.connect(server)
                 sock.send('00'.encode())
@@ -109,7 +109,7 @@ class PHI(GenericPHI):
         server = (relay_host, relay_port)
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(timeout - 1)
+            sock.settimeout(timeout)
             try:
                 sock.connect(server)
                 sock.send(('%s%s' % (_dts, _port)).encode())

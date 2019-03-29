@@ -71,7 +71,7 @@ class PHI(GenericPHI):
         r = requests.post(
             'http://%s/login.html' % self.host,
             data={'pw': self.pw},
-            timeout=(timeout - 0.2))
+            timeout=timeout)
         if r.status_code != 200:
             raise Exception('remote http code %s' % r.status_code)
         return r.text
@@ -98,7 +98,7 @@ class PHI(GenericPHI):
         if state is not None:
             return state
         t_start = time()
-        if not self.lock.acquire(int(timeout - 1)):
+        if not self.lock.acquire(int(timeout)):
             return None
         logged_in = False
         try:
@@ -129,7 +129,7 @@ class PHI(GenericPHI):
             socket = int(port)
         except:
             return False
-        if not self.lock.acquire(int(timeout - 2)):
+        if not self.lock.acquire(int(timeout)):
             return False
         try:
             self._login(timeout=(t_start - time() + timeout))
@@ -137,7 +137,7 @@ class PHI(GenericPHI):
             r = requests.post(
                 'http://%s/status.html?sn=%u' % (self.host, socket),
                 data={"cte%u" % socket: data},
-                timeout=(t_start - time() + timeout - 1))
+                timeout=(t_start - time() + timeout))
             if r.status_code != 200:
                 raise Exception(
                     'remote http code %s on port set' % r.status_code)

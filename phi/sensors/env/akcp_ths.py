@@ -90,7 +90,7 @@ class PHI(GenericPHI):
         if wo is None: return None
         snmp_oid = '.1.3.6.1.4.1.3854.1.2.2.1.%u.1.3.%u' % (
             wo, self.sensor_port - 1)
-        _timeout = (timeout - 1) / self.snmp_tries
+        _timeout = timeout / self.snmp_tries
         return snmp.get(
             snmp_oid,
             self.snmp_host,
@@ -127,7 +127,7 @@ class PHI(GenericPHI):
                 self.snmp_host,
                 self.snmp_port,
                 self.community,
-                timeout=get_timeout() - 0.5,
+                timeout=get_timeout(),
                 snmp_ver=1)
             if not name: return 'FAILED'
             vendor = snmp.get(
@@ -135,12 +135,12 @@ class PHI(GenericPHI):
                 self.snmp_host,
                 self.snmp_port,
                 self.community,
-                timeout=get_timeout() - 0.5,
+                timeout=get_timeout(),
                 snmp_ver=1)
             if not vendor: return 'FAILED'
             return '%s %s' % (vendor.strip(), name.strip())
         if cmd == 'self':
-            t = self.get('t')
-            h = self.get('h')
+            t = self.get('t', timeout=get_timeout())
+            h = self.get('h', timeout=get_timeout())
             return 'OK' if t and h else 'FAILED'
         return {'info': 'returns relay ip module name and version'}
