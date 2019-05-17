@@ -4,7 +4,7 @@ __license__ = "Apache License 2.0"
 __version__ = "1.0.0"
 __description__ = "Philips HUE LEDs"
 
-__equipment__ = 'philips hue leds'
+__equipment__ = 'Philips HUE LEDs'
 __api__ = 5
 __required__ = ['port_get', 'port_set', 'value', 'status']
 __mods_required__ = []
