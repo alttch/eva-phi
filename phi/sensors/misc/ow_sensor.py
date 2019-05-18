@@ -1,15 +1,15 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.0"
+__version__ = "1.1.2"
 __description__ = "1-Wire OWFS universal sensor driver"
 
 __equipment__ = ['Any 1-Wire sensor']
-__api__ = 4
-__required__ = ['port_get', 'value']
+__api__ = 5
+__required__ = ['port_get', 'value', 'aao_get']
 __mods_required__ = []
 __lpi_default__ = 'ssp'
-__features__ = ['port_get', 'universal', 'aao_get']
+__features__ = ['universal']
 __config_help__ = [{
     'name': 'owfs',
     'help': 'OWFS virtual bus',
@@ -52,7 +52,6 @@ class PHI(GenericPHI):
         self.owfs_bus = self.phi_cfg.get('owfs')
         self.path = self.phi_cfg.get('path')
         self.attr = self.phi_cfg.get('attr')
-        self.aao_get = True
 
     def get(self, port=None, cfg=None, timeout=0):
         owfs_bus = self.owfs_bus

@@ -1,15 +1,15 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 __description__ = "EG-PM2-LAN smart PDU"
 
-__api__ = 4
+__api__ = 5
 __required__ = ['aao_get', 'port_set', 'status', 'action']
 __mods_required__ = []
 __lpi_default__ = 'basic'
 __equipment__ = 'EG-PM2-LAN'
-__features__ = ['aao_get', 'port_set', 'cache']
+__features__ = ['cache']
 
 __config_help__ = [{
     'name': 'host',
@@ -56,7 +56,6 @@ class PHI(GenericPHI):
 
     @phi_constructor
     def __init__(self, **kwargs):
-        self.aao_get = True
         self.host = self.phi_cfg.get('host')
         self.pw = self.phi_cfg.get('pw')
         # set logout='skip' to speed up the operations

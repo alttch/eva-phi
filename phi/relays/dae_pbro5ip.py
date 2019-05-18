@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __description__ = "Denkovi relay DAE-PB-RO5-DAEnetIP4"
 
 __api__ = 4
@@ -9,7 +9,7 @@ __required__ = ['port_get', 'port_set', 'status', 'action']
 __mods_required__ = []
 __lpi_default__ = 'basic'
 __equipment__ = 'DAE-PB-RO5-DAEnetIP4'
-__features__ = ['port_get', 'port_set', 'universal']
+__features__ = ['universal']
 __config_help__ = [{
     'name': 'host',
     'help': 'relay host/ip[:port]',

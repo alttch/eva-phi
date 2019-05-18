@@ -1,15 +1,15 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __description__ = "Denkovi ModBus relay DAE-RO16"
 
-__api__ = 4
+__api__ = 5
 __equipment__ = 'DAE-RO16-MODBUS'
 __required__ = ['aao_get', 'port_set', 'status', 'action']
 __mods_required__ = []
 __lpi_default__ = 'basic'
-__features__ = ['aao_get', 'port_set']
+__features__ = []
 __config_help__ = [{
     'name': 'port',
     'help': 'ModBus port ID',
@@ -42,7 +42,6 @@ class PHI(GenericPHI):
 
     @phi_constructor
     def __init__(self, **kwargs):
-        self.aao_get = True
         self.port_max = 16
         self.modbus_port = self.phi_cfg.get('port')
         if not modbus.is_port(self.modbus_port):

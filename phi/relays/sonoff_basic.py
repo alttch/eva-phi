@@ -1,15 +1,15 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __description__ = "Sonoff Basic WiFi relay"
 
 __api__ = 4
-__required__ = ['port_get', 'port_set']
+__required__ = ['port_get', 'port_set', 'action']
 __mods_required__ = []
 __lpi_default__ = 'usp'
 __equipment__ = ['ITead 1-port (Tasmota)']
-__features__ = ['port_get', 'port_set', 'events']
+__features__ = ['events']
 __config_help__ = [{
     'name': 't',
     'help': 'MQTT full topic',

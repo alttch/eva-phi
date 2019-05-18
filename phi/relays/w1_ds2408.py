@@ -1,15 +1,15 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.0"
+__version__ = "1.1.2"
 __description__ = "1-Wire DS2408 8-port relay"
 
-__api__ = 4
+__api__ = 5
 __required__ = ['aao_get', 'aao_set', 'status', 'action']
 __mods_required__ = []
 __lpi_default__ = 'basic'
 __equipment__ = ['DS2408']
-__features__ = ['aao_get', 'aao_set', 'universal']
+__features__ = ['universal']
 __config_help__ = [{
     'name': 'addr',
     'help': 'relay address on 1-Wire bus',
@@ -59,8 +59,6 @@ class PHI(GenericPHI):
     def __init__(self, **kwargs):
         self.addr = self.phi_cfg.get('addr')
         self.w1 = '/sys/bus/w1/devices'
-        self.aao_get = True
-        self.aao_set = True
         retries = self.phi_cfg.get('retries')
         try:
             retries = int(retries)

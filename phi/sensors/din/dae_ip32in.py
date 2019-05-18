@@ -1,15 +1,15 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __description__ = "Denkovi smartDEN IP-32IN (DINs)"
 
 __api__ = 4
-__required__ = ['value']
+__required__ = ['value', 'events']
 __mods_required__ = []
 __lpi_default__ = 'sensor'
 __equipment__ = 'smartDEN IP-32IN'
-__features__ = ['events']
+__features__ = []
 __config_help__ = [{
     'name': 'host',
     'help': 'module host/ip',

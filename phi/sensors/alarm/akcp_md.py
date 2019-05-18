@@ -1,15 +1,15 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __description__ = "AKCP MD00 motion sensor"
 
 __api__ = 4
-__required__ = ['port_get', 'value']
+__required__ = ['port_get', 'value', 'events']
 __mods_required__ = []
 __lpi_default__ = 'ssp'
 __equipment__ = 'AKCP MD00'
-__features__ = ['events']
+__features__ = []
 __config_help__ = [{
     'name': 'host',
     'help': 'AKCP controller IP',

@@ -1,15 +1,15 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.0.2"
 __description__ = "1-Wire OWFS temperature sensor driver"
 
 __equipment__ = ['DS18S20', 'DS18B20']
-__api__ = 4
-__required__ = ['port_get', 'value']
+__api__ = 5
+__required__ = ['port_get', 'value', 'aao_get']
 __mods_required__ = []
 __lpi_default__ = 'ssp'
-__features__ = ['port_get', 'aao_get']
+__features__ = []
 __config_help__ = [{
     'name': 'owfs',
     'help': 'OWFS virtual bus',
@@ -43,7 +43,6 @@ class PHI(GenericPHI):
     def __init__(self, **kwargs):
         self.owfs_bus = self.phi_cfg.get('owfs')
         self.path = self.phi_cfg.get('path')
-        self.aao_get = True
         if not self.owfs_bus or not self.path:
             self.log_error('owfs/path not specified')
             self.ready = False

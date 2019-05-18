@@ -4,12 +4,12 @@ __license__ = "Apache License 2.0"
 __version__ = "1.1.0"
 __description__ = "SR-201 relay"
 
-__api__ = 4
+__api__ = 5
 __required__ = ['aao_get', 'port_set', 'status', 'action']
 __mods_required__ = []
 __lpi_default__ = 'basic'
 __equipment__ = 'SR-201'
-__features__ = ['aao_get', 'port_set', 'universal']
+__features__ = ['universal']
 __config_help__ = [{
     'name': 'host',
     'help': 'relay host/ip[:port]',
@@ -46,7 +46,6 @@ class PHI(GenericPHI):
     @phi_constructor
     def __init__(self, **kwargs):
         self.port_max = 8
-        self.aao_get = True
         self.relay_host, self.relay_port = parse_host_port(
             self.phi_cfg.get('host'), 6722)
 

@@ -1,15 +1,15 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.0"
+__version__ = "1.1.2"
 __description__ = "DHT11, DHT22, AM3202 temperature/humidity sensors"
 
-__api__ = 4
+__api__ = 5
 __required__ = ['aao_get', 'value']
 __mods_required__ = 'Adafruit_DHT'
 __lpi_default__ = 'sensor'
 __equipment__ = ['DHT11', 'DHT22', 'AM3202']
-__features__ = ['aao_get']
+__features__ = []
 __config_help__ = [{
     'name': 'port',
     'help': 'GPIO port to use',

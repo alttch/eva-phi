@@ -6,10 +6,10 @@ __description__ = "Philips HUE LEDs"
 
 __equipment__ = 'Philips HUE LEDs'
 __api__ = 5
-__required__ = ['port_get', 'port_set', 'value', 'status']
+__required__ = ['port_get', 'port_set', 'value', 'status', 'action']
 __mods_required__ = []
 __lpi_default__ = 'basic'
-__features__ = ['port_get', 'port_set', 'value']
+__features__ = []
 __config_help__ = [{
     'name': 'host',
     'help': 'hue bridge host/ip[:port]',

@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __description__ = "1-Wire DS18N20 temperature sensors"
 
 __api__ = 4
@@ -9,7 +9,7 @@ __required__ = ['port_get', 'value']
 __mods_required__ = []
 __lpi_default__ = 'sensor'
 __equipment__ = ['DS18S20', 'DS18B20']
-__features__ = ['port_get', 'universal']
+__features__ = ['universal']
 __config_help__ = [{
     'name': 'retries',
     'help': '1-Wire retry attempts (default: 3)',
