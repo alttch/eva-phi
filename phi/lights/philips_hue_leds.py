@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __description__ = "Philips HUE LEDs"
 
 __equipment__ = 'Philips HUE LEDs'
@@ -35,6 +35,8 @@ To set LED color/brigthness, set action 'value' to RGB hex.
 
 To let the bridge search new LEDs, execute 'exec scan' command. To obtain list
 of new lights, execute 'test new'.
+
+To delete light, execute 'exec delete <light_id>'
 """
 
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
@@ -121,21 +123,28 @@ class PHI(GenericPHI):
                 log_traceback()
                 return 'FAILED' if cmd == 'self' else None
         else:
-            return {'get': 'get state of all lights'}
-            return {'new': 'get new lights'}
+            return {'get': 'get state of all lights', 'new': 'get new lights'}
 
     def exec(self, cmd=None, args=None):
-        if cmd == 'scan':
-            try:
+        try:
+            if cmd == 'scan':
                 result = requests.post(
                     '{}/lights'.format(self.api_uri),
                     timeout=get_timeout()).json()
                 return result
-            except:
-                log_traceback()
-                return None
-        else:
-            return {'scan': 'scan for a new lights'}
+            elif cmd == 'delete':
+                result = requests.delete(
+                    '{}/lights/{}'.format(self.api_uri, int(args)),
+                    timeout=get_timeout()).json()
+                return result
+            else:
+                return {
+                    'scan': 'scan for a new lights',
+                    'delete': 'delete light'
+                }
+        except:
+            log_traceback()
+            return None
 
     def unload(self):
         try:
