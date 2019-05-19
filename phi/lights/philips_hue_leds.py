@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __description__ = "Philips HUE LEDs"
 
 __equipment__ = 'Philips HUE LEDs'
@@ -33,7 +33,8 @@ PHI loaded within 30 seconds.
 
 To set LED color/brigthness, set action 'value' to RGB hex.
 
-To let the bridge search new LEDs, execute 'test self' or 'test get'.
+To let the bridge search new LEDs, execute 'exec scan' command. To obtain list
+of new lights, execute 'test new'.
 """
 
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
@@ -105,10 +106,13 @@ class PHI(GenericPHI):
             return False
 
     def test(self, cmd=None):
-        if cmd == 'self' or cmd == 'get':
+        if cmd in ['self', 'get', 'new']:
+            c = 'lights'
+            if cmd == 'new':
+                c = 'lights/new'
             try:
                 result = requests.get(
-                    '{}/lights'.format(self.api_uri),
+                    '{}/{}'.format(self.api_uri, c),
                     timeout=get_timeout()).json()
                 if isinstance(result, list):
                     raise Exception
@@ -118,6 +122,20 @@ class PHI(GenericPHI):
                 return 'FAILED' if cmd == 'self' else None
         else:
             return {'get': 'get state of all lights'}
+            return {'new': 'get new lights'}
+
+    def exec(self, cmd=None, args=None):
+        if cmd == 'scan':
+            try:
+                result = requests.post(
+                    '{}/lights'.format(self.api_uri),
+                    timeout=get_timeout()).json()
+                return result
+            except:
+                log_traceback()
+                return None
+        else:
+            return {'scan': 'scan for a new lights'}
 
     def unload(self):
         try:
