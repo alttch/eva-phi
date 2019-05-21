@@ -37,7 +37,6 @@ from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
 from eva.uc.driverapi import log_traceback
 from eva.uc.driverapi import phi_constructor
 from eva.uc.driverapi import get_timeout
-from eva.uc.driverapi import get_system_name
 
 import requests
 import math
