@@ -32,6 +32,8 @@ before loading PHI.
 If unit value is specified as RGB hex, PHI sets its color, otherwise chosen
 effect is applied.
 """
+__discover__ = 'net'
+__discover_help__ = 'Set timeout at least to 3 seconds'
 
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
 from eva.uc.driverapi import log_traceback
@@ -66,6 +68,27 @@ class PHI(GenericPHI):
                 log_traceback()
                 self.ready = False
         self.api_uri += '/{}'.format(self.token)
+
+    @staticmethod
+    def discover(interface=None, timeout=0):
+        import eva.uc.drivers.tools.ssdp as ssdp
+        result = ssdp.discover(
+            'nanoleaf_aurora:light',
+            interface=interface,
+            timeout=timeout,
+            discard_headers=[
+                'Cache-control', 'Ext', 'Location', 'Host', 'Nl-deviceid',
+                'Usn', 'S', 'St'
+            ])
+        if result:
+            for r in result:
+                try:
+                    r['Name'] = r['Nl-devicename']
+                    del r['Nl-devicename']
+                except:
+                    pass
+                r['!load'] = {'host': r['IP']}
+        return result
 
     def get(self, port=None, cfg=None, timeout=0):
         try:
