@@ -88,7 +88,7 @@ class PHI(GenericPHI):
             s.send('{ "id": 2, "method": "get_prop", "params": ["rgb"] }\r\n'.
                    encode())
             data = s.recv(1024).decode()
-            value = hex(int(json.loads(data)['result'][0]))[2:]
+            value = '#' + hex(int(json.loads(data)['result'][0]))[2:]
             return status, value
         except:
             log_traceback()
