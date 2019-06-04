@@ -27,7 +27,8 @@ __help__ = """
 Xiaomi Yeelight LED control. Bulb LAN control must be turned on
 (https://www.yeelight.com/en_US/developer)
 
-Unit value = RGB hex.
+Unit value = RGB hex. If both old and new status are 'off' (0), value is not
+set
 """
 __discover__ = 'net'
 __discover_help__ = 'Set timeout at least to 3 seconds'
@@ -99,6 +100,29 @@ class PHI(GenericPHI):
                 pass
 
     def set(self, port=None, data=None, cfg=None, timeout=0):
+
+        def set_value(s, value):
+            c = {'id': 1, 'method': 'set_rgb', 'params': [value]}
+            if self.smooth:
+                c['params'] += ['smooth', self.smooth]
+            s.send((json.dumps(c) + '\r\n').encode())
+            data = s.recv(1024).decode()
+            if json.loads(data)['result'][0] != 'ok':
+                raise Exception('Unable to set value')
+
+        def set_status(s, status):
+            c = {
+                'id': 2,
+                'method': 'set_power',
+                'params': ['on' if status else 'off']
+            }
+            if self.smooth:
+                c['params'] += ['smooth', self.smooth]
+            s.send((json.dumps(c) + '\r\n').encode())
+            data = s.recv(1024).decode()
+            if json.loads(data)['result'][0] != 'ok':
+                raise Exception('Unable to set status')
+
         time_start = time()
         status, value = data
         if value:
@@ -118,27 +142,16 @@ class PHI(GenericPHI):
             s.connect((self.host, 55443))
             if time_start + timeout < time():
                 raise Exception('operation timeout')
-            if value:
-                c = {'id': 1, 'method': 'set_rgb', 'params': [value]}
-                if self.smooth:
-                    c['params'] += ['smooth', self.smooth]
-                s.send((json.dumps(c) + '\r\n').encode())
-                data = s.recv(1024).decode()
-                if json.loads(data)['result'][0] != 'ok':
-                    raise Exception('Unable to set value')
+            # if status will be off, try setting value first
+            if value and not status:
+                set_value(s, value)
             if time_start + timeout < time():
                 raise Exception('operation timeout')
-            c = {
-                'id': 2,
-                'method': 'set_power',
-                'params': ['on' if status else 'off']
-            }
-            if self.smooth:
-                c['params'] += ['smooth', self.smooth]
-            s.send((json.dumps(c) + '\r\n').encode())
-            data = s.recv(1024).decode()
-            if json.loads(data)['result'][0] != 'ok':
-                raise Exception('Unable to set status')
+            set_status(s, status)
+            if time_start + timeout < time():
+                raise Exception('operation timeout')
+            if value and status:
+                set_value(s, value)
             return True
         except:
             log_traceback()
