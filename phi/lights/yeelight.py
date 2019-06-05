@@ -28,7 +28,7 @@ Xiaomi Yeelight LED control. Bulb LAN control must be turned on
 (https://www.yeelight.com/en_US/developer)
 
 Unit value = RGB hex. If both old and new status are 'off' (0), value is not
-set
+set. Value get is supported in RGB and CT mode.
 """
 __discover__ = 'net'
 __discover_help__ = 'Set timeout at least to 3 seconds'
@@ -83,17 +83,18 @@ class PHI(GenericPHI):
             s.connect((self.host, 55443))
             if time_start + timeout < time():
                 raise Exception('operation timeout')
-            s.send('{ "id": 1, "method": "get_prop", "params": ["power"] }\r\n'.
-                   encode())
-            data = s.recv(1024).decode()
-            status = 1 if json.loads(data)['result'][0] == 'on' else 0
-            if time_start + timeout < time():
-                raise Exception('operation timeout')
-            s.send('{ "id": 2, "method": "get_prop", "params": ["rgb"] }\r\n'.
-                   encode())
-            data = s.recv(1024).decode()
-            value = '#{:06x}'.format(int(json.loads(data)['result'][0]))
-            return status, value
+            s.send(('{ "id": 1, "method": "get_prop", "params":' +
+                    ' ["power", "color_mode", "rgb", "ct", "bright"] }\r\n'
+                   ).encode())
+            result = json.loads(s.recv(1024).decode())['result']
+            status = 1 if result[0] == 'on' else 0
+            if int(result[1]) == 2:
+                red = round(int(result[4]) * 255 / 100)
+                blue = round((int(result[3]) - 1700) / 4800 * red)
+                value = red * 65792 + blue
+            else:
+                value = int(result[2])
+            return status, '#{:06x}'.format(value)
         except:
             log_traceback()
             return None
@@ -105,14 +106,38 @@ class PHI(GenericPHI):
 
     def set(self, port=None, data=None, cfg=None, timeout=0):
 
-        def set_value(s, value):
+        def set_rgb(s, value):
             c = {'id': 1, 'method': 'set_rgb', 'params': [value]}
             if self.smooth:
                 c['params'] += ['smooth', self.smooth]
+            else:
+                c['params'] += ['sudden', 0]
             s.send((json.dumps(c) + '\r\n').encode())
             data = s.recv(1024).decode()
             if json.loads(data)['result'][0] != 'ok':
                 raise Exception('Unable to set value')
+
+        def set_bright(s, value):
+            c = {'id': 1, 'method': 'set_bright', 'params': [value]}
+            if self.smooth:
+                c['params'] += ['smooth', self.smooth]
+            else:
+                c['params'] += ['sudden', 0]
+            s.send((json.dumps(c) + '\r\n').encode())
+            data = s.recv(1024).decode()
+            if json.loads(data)['result'][0] != 'ok':
+                raise Exception('Unable to set brightness')
+
+        def set_temp(s, value):
+            c = {'id': 1, 'method': 'set_ct_abx', 'params': [value]}
+            if self.smooth:
+                c['params'] += ['smooth', self.smooth]
+            else:
+                c['params'] += ['sudden', 0]
+            s.send((json.dumps(c) + '\r\n').encode())
+            data = s.recv(1024).decode()
+            if json.loads(data)['result'][0] != 'ok':
+                raise Exception('Unable to set brightness')
 
         def set_status(s, status):
             c = {
@@ -135,7 +160,14 @@ class PHI(GenericPHI):
                 red = int(s_in[:2], 16)
                 green = int(s_in[2:4], 16)
                 blue = int(s_in[4:], 16)
-                value = red * 65536 + green * 256 + blue
+                if red == green and blue <= red:
+                    value = None
+                    temp = round(1700 + blue / red * 4800)
+                    bright = round(red * 100 / 255)
+                else:
+                    value = red * 65536 + green * 256 + blue
+                    temp = None
+                    bright = None
             except:
                 self.log_error('Invalid value: {}'.format(value))
                 return False
@@ -147,15 +179,27 @@ class PHI(GenericPHI):
             if time_start + timeout < time():
                 raise Exception('operation timeout')
             # if status will be off, try setting value first
-            if value and not status:
-                set_value(s, value)
+            if (value or temp is not None) and not status:
+                if temp is not None:
+                    set_bright(s, bright)
+                    if time_start + timeout < time():
+                        raise Exception('operation timeout')
+                    set_temp(s, temp)
+                else:
+                    set_rgb(s, value)
             if time_start + timeout < time():
                 raise Exception('operation timeout')
             set_status(s, status)
             if time_start + timeout < time():
                 raise Exception('operation timeout')
-            if value and status:
-                set_value(s, value)
+            if (value or temp is not None) and status:
+                if temp is not None:
+                    set_bright(s, bright)
+                    if time_start + timeout < time():
+                        raise Exception('operation timeout')
+                    set_temp(s, temp)
+                else:
+                    set_rgb(s, value)
             return True
         except:
             log_traceback()
