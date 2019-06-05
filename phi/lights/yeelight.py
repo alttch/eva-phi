@@ -69,6 +69,10 @@ class PHI(GenericPHI):
         if result:
             for r in result:
                 r['!load'] = {'host': r['IP']}
+            result = [{
+                '!opt': 'cols',
+                'value': ['IP', 'Name', 'Id', 'Fw_ver', 'Model']
+            }] + result
         return result
 
     def get(self, port=None, cfg=None, timeout=0):
