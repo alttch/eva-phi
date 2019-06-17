@@ -98,11 +98,27 @@ class PHI(GenericPHI):
                         'IP': d['IP'],
                         'ID': d['Hue-bridgeid']
                     }
-            result = [{
-                '!opt': 'cols',
-                'value': ['IP', 'ID']
-            }] + result
+            result = [{'!opt': 'cols', 'value': ['IP', 'ID']}] + result
         return result
+
+    def get_ports(self):
+        result = []
+        try:
+            data = requests.get(
+                '{}/lights'.format(self.api_uri), timeout=get_timeout()).json()
+            if isinstance(data, list):
+                raise Exception
+            for i, v in data.items():
+                result.append({
+                    'port':
+                    str(i),
+                    'name':
+                    v['name'],
+                    'description':
+                    '{} {}'.format(v['manufacturername'], v['modelid'])
+                })
+        except:
+            return False
 
     def get(self, port=None, cfg=None, timeout=0):
         try:
