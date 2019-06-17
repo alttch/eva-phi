@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __description__ = "Nanoleaf LEDs"
 
 __equipment__ = 'Nanoleaf LEDs'
@@ -100,6 +100,8 @@ class PHI(GenericPHI):
                 s = result['state']['sat']['value']
                 v = result['state']['brightness']['value']
                 value = self.hsv2rgb(h, s, v)
+            else:
+                value += ',{}'.format(result['state']['brightness']['value'])
             return status, value
         except:
             self.log_error('unable to get state')
@@ -139,14 +141,33 @@ class PHI(GenericPHI):
                                 result.status_code))
                 except ValueError:
                     # we have a string, probably effect
+                    try:
+                        p = value.split(',', 1)
+                    except:
+                        return False
                     result = requests.put(
                         '{}/effects'.format(self.api_uri),
-                        json={'select': value},
+                        json={'select': p[0]},
                         timeout=timeout)
                     if not result.ok:
                         raise Exception(
                             'set value (effect) http code: {}'.format(
                                 result.status_code))
+                    if len(p) > 1:
+                        t2 = timeout - time() + t_start
+                        if t2 <= 0: raise Exception('PHI timeout')
+                        try:
+                            params = {'brightness': {'value': int(p[1])}}
+                        except:
+                            raise Exception('Invalid brightness value')
+                        result = requests.put(
+                            '{}/state'.format(self.api_uri),
+                            json=params,
+                            timeout=timeout)
+                        if not result.ok:
+                            raise Exception(
+                                'set value (brightness) http code: {}'.format(
+                                    result.status_code))
             t2 = timeout - time() + t_start
             if t2 <= 0: raise Exception('PHI timeout')
             params = {'on': {'value': True if status else False}}
