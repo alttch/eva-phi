@@ -46,6 +46,9 @@ class PHI(GenericPHI):
         self.owfs_bus = self.phi_cfg.get('owfs')
         self.path = self.phi_cfg.get('path')
 
+    def get_ports(self):
+        return self.generate_port_list(port_max=8, description='relay port #{}')
+
     def get(self, port=None, cfg=None, timeout=0):
         if port:
             try:

@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 __description__ = "Denkovi relay smartDEN-IP-16R"
 
 __api__ = 4
@@ -90,7 +90,8 @@ class PHI(GenericPHI):
         self.oid_work = '.1.3.6.1.4.1.42505.6.2.3.1.3'
 
     def get_ports(self):
-        return self.generate_port_list(port_max=16, description='relay port #{}')
+        return self.generate_port_list(
+            port_max=16, description='relay port #{}')
 
     def get(self, port=None, cfg=None, timeout=0):
         try:
