@@ -61,6 +61,9 @@ class PHI(GenericPHI):
             for ch in range(1, self.channels + 1):
                 self.current_status[str(ch)] = None
 
+    def get_ports(self):
+        return self.generate_port_list(port_max=4)
+
     def get(self, port=None, cfg=None, timeout=0):
         return self.current_status
 

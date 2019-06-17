@@ -91,6 +91,10 @@ class PHI(GenericPHI):
         self.set_cached_state(result)
         return result
 
+    def get_ports(self):
+        return self.generate_port_list(
+            port_max=4, description='power socket #{}')
+
     def get(self, port=None, cfg=None, timeout=0):
         # trying to get cached state before
         state = self.get_cached_state()

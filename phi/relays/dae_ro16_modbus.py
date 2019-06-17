@@ -83,6 +83,9 @@ class PHI(GenericPHI):
                 'id': 'change relay slave ID (1..247), relay reboot required'
             }
 
+    def get_ports(self):
+        return self.generate_port_list(port_max=16, description='relay port #{}')
+
     def get(self, port=None, cfg=None, timeout=0):
         mb = modbus.get_port(self.modbus_port, timeout)
         if not mb: return None

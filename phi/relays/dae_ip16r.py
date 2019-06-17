@@ -89,6 +89,9 @@ class PHI(GenericPHI):
         self.oid_version = '.1.3.6.1.4.1.42505.6.1.2.0'
         self.oid_work = '.1.3.6.1.4.1.42505.6.2.3.1.3'
 
+    def get_ports(self):
+        return self.generate_port_list(port_max=16, description='relay port #{}')
+
     def get(self, port=None, cfg=None, timeout=0):
         try:
             port = int(port)

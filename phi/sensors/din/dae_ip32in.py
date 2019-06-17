@@ -56,6 +56,12 @@ class PHI(GenericPHI):
     def stop(self):
         eva.traphandler.unsubscribe(self)
 
+    def get_ports(self):
+        return self.generate_port_list(
+            port_max=16,
+            name='DIN port #{}',
+            description='digital input port #{}')
+
     def process_snmp_trap(self, host, data):
         if host != self.snmp_host: return
         if data.get('1.3.6.1.6.3.1.1.4.1.0') != '1.3.6.1.4.1.42505.7.0.1':
