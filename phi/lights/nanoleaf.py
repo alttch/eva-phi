@@ -88,6 +88,10 @@ class PHI(GenericPHI):
                 except:
                     pass
                 r['!load'] = {'host': r['IP']}
+            result = [{
+                '!opt': 'cols',
+                'value': ['IP', 'Name']
+            }] + result
         return result
 
     def get(self, port=None, cfg=None, timeout=0):

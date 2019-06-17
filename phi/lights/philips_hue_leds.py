@@ -98,6 +98,10 @@ class PHI(GenericPHI):
                         'IP': d['IP'],
                         'ID': d['Hue-bridgeid']
                     }
+            result = [{
+                '!opt': 'cols',
+                'value': ['IP', 'ID']
+            }] + result
         return result
 
     def get(self, port=None, cfg=None, timeout=0):
