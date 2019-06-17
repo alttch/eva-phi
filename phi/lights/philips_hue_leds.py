@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 __description__ = "Philips HUE LEDs"
 
 __equipment__ = 'Philips HUE LEDs'
@@ -75,6 +75,30 @@ class PHI(GenericPHI):
                 log_traceback()
                 self.ready = False
         self.api_uri += '/{}'.format(self.user)
+
+    @staticmethod
+    def discover(interface=None, timeout=0):
+        import eva.uc.drivers.tools.ssdp as ssdp
+        result = []
+        data = ssdp.discover(
+            'upnp:rootdevice',
+            interface=interface,
+            timeout=timeout,
+            discard_headers=[
+                'Cache-control', 'Ext', 'Location', 'Host', 'Usn', 'St',
+                'Server'
+            ])
+        if data:
+            for i, d in data:
+                if 'Hue-bridgeid' in d:
+                    r = {
+                        '!load': {
+                            'host': d['IP']
+                        },
+                        'IP': d['IP'],
+                        'ID': d['Hue-bridgeid']
+                    }
+        return result
 
     def get(self, port=None, cfg=None, timeout=0):
         try:
