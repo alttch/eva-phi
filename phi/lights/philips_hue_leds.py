@@ -89,7 +89,7 @@ class PHI(GenericPHI):
                 'Server'
             ])
         if data:
-            for i, d in data:
+            for d in data:
                 if 'Hue-bridgeid' in d:
                     r = {
                         '!load': {
