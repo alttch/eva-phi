@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 __description__ = "Denkovi relay DAE-PB-RO5-DAEnetIP4"
 
 __api__ = 4

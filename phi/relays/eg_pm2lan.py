@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 __description__ = "EG-PM2-LAN smart PDU"
 
 __api__ = 5
