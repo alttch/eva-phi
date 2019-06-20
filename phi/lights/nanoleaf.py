@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 __description__ = "Nanoleaf LEDs"
 
 __equipment__ = 'Nanoleaf LEDs'
@@ -83,7 +83,7 @@ class PHI(GenericPHI):
             ])
         if data:
             for r in data:
-                if 'Nl-deviceid' in r:
+                if 'Nl-devicename' in r:
                     try:
                         r['Name'] = r['Nl-devicename']
                         del r['Nl-devicename']

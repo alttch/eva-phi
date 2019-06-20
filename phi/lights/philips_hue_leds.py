@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 __description__ = "Philips HUE LEDs"
 
 __equipment__ = 'Philips HUE LEDs'
@@ -119,6 +119,7 @@ class PHI(GenericPHI):
                     'description':
                     '{} {}'.format(v['manufacturername'], v['modelid'])
                 })
+            return result
         except:
             log_traceback()
             return False
