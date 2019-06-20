@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __description__ = "Nanoleaf LEDs"
 
 __equipment__ = 'Nanoleaf LEDs'
@@ -72,7 +72,8 @@ class PHI(GenericPHI):
     @staticmethod
     def discover(interface=None, timeout=0):
         import eva.uc.drivers.tools.ssdp as ssdp
-        result = ssdp.discover(
+        result = []
+        data = ssdp.discover(
             'nanoleaf_aurora:light',
             interface=interface,
             timeout=timeout,
@@ -80,18 +81,18 @@ class PHI(GenericPHI):
                 'Cache-control', 'Ext', 'Location', 'Host', 'Nl-deviceid',
                 'Usn', 'S', 'St'
             ])
-        if result:
-            for r in result:
-                try:
-                    r['Name'] = r['Nl-devicename']
-                    del r['Nl-devicename']
-                except:
-                    pass
-                r['!load'] = {'host': r['IP']}
-            result = [{
-                '!opt': 'cols',
-                'value': ['IP', 'Name']
-            }] + result
+        if data:
+            for r in data:
+                if 'Nl-deviceid' in r:
+                    try:
+                        r['Name'] = r['Nl-devicename']
+                        del r['Nl-devicename']
+                    except:
+                        pass
+                    r['!load'] = {'host': r['IP']}
+                    result.append(r)
+            if result:
+                result = [{'!opt': 'cols', 'value': ['IP', 'Name']}] + result
         return result
 
     def get(self, port=None, cfg=None, timeout=0):
