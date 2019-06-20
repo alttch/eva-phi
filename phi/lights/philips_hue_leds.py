@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 __description__ = "Philips HUE LEDs"
 
 __equipment__ = 'Philips HUE LEDs'
@@ -98,6 +98,7 @@ class PHI(GenericPHI):
                         'IP': d['IP'],
                         'ID': d['Hue-bridgeid']
                     }
+                    result.append(r)
             result = [{'!opt': 'cols', 'value': ['IP', 'ID']}] + result
         return result
 
