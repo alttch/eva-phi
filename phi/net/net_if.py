@@ -4,7 +4,7 @@ __license__ = "Apache License 2.0"
 __version__ = "1.0.0"
 __description__ = "Bandwidth meter/interface monitor"
 
-__api__ = 4
+__api__ = 6
 __required__ = ['port_get', 'value']
 __mods_required__ = []
 __lpi_default__ = 'esensor'
