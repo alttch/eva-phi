@@ -25,7 +25,8 @@ __get_help__ = []
 __set_help__ = []
 
 __help__ = """
-PHI for Softron SM-100 Modbus temperature sensor. Ports: "t"
+PHI for Softron (http://www.softron.com.ua/) SM-100 Modbus temperature sensor.
+Ports: "t"
 """
 
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI

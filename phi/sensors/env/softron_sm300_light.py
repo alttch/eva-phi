@@ -25,7 +25,8 @@ __get_help__ = []
 __set_help__ = []
 
 __help__ = """
-PHI for Softron SM-300 Modbus light sensor. Ports: "l"
+PHI for Softron (http://www.softron.com.ua/) SM-300 Modbus light sensor. Ports:
+"l"
 """
 
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
