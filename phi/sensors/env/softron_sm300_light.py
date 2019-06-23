@@ -8,7 +8,7 @@ __api__ = 4
 __required__ = ['aao_get', 'value']
 __mods_required__ = []
 __lpi_default__ = 'ssp'
-__equipment__ = ['Softron SM-200']
+__equipment__ = ['Softron SM-300']
 __features__ = []
 __config_help__ = [{
     'name': 'port',
