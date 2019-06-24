@@ -66,7 +66,7 @@ class PHI(GenericPHI):
             if rr.isError():
                 self.log_debug(rr)
                 return None
-            return {'l': rr.registers[0] * 256 + rr.registers[1]}
+            return {'l': rr.registers[0] * 65536 + rr.registers[1]}
         except:
             log_traceback()
             return None
