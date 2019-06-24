@@ -82,7 +82,7 @@ class PHI(GenericPHI):
                 if rr.registers[0] != 1:
                     raise Exception('status: {}'.format(rr.registers[0]))
                 return 'OK'
-            except Exceptiona as e:
+            except Exception as e:
                 self.log_error(e)
                 return 'FAILED'
         elif cmd == 'fwver':
