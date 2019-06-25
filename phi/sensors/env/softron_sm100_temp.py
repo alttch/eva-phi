@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __description__ = "Softron SM-100 temperature sensor"
 
 __api__ = 4
@@ -66,7 +66,9 @@ class PHI(GenericPHI):
             if rr.isError():
                 self.log_debug(rr)
                 return None
-            return {'t': rr.registers[0] / 100}
+            temp = rr.registers[0]
+            if temp > 32767: temp = temp - 65536
+            return {'t': temp / 100}
         except:
             log_traceback()
             return None
