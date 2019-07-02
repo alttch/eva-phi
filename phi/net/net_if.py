@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __description__ = "Bandwidth meter/interface monitor"
 
 __api__ = 6
@@ -89,6 +89,15 @@ class PHI(GenericPHI):
         self.community = community
         self.retries = retries
 
+    def create_session(self, timeout):
+        return netsnmp.Session(
+            Version=2,
+            DestHost=self.host,
+            RemotePort=self.port,
+            Community=self.community,
+            Timeout=int(timeout * 1000000),
+            Retries=self.retries)
+
     def get_ports(self):
         ports = {}
         # get ports
@@ -144,15 +153,8 @@ class PHI(GenericPHI):
                 oid = netsnmp.VarList('.1.3.6.1.2.1.2.2.1.7',
                                       '.1.3.6.1.2.1.2.2.1.10',
                                       '.1.3.6.1.2.1.2.2.1.16')
-                sess = netsnmp.Session(
-                    Version=2,
-                    DestHost=self.host,
-                    RemotePort=self.port,
-                    Community=self.community,
-                    Timeout=int(timeout * 1000000),
-                    Retries=self.retries)
                 rtime = time()
-                data = sess.walk(oid)
+                data = self.create_session(timeout).walk(oid)
                 result = {}
                 for v in oid:
                     o, p = v.tag.rsplit('.', 1)
@@ -197,12 +199,25 @@ class PHI(GenericPHI):
             return None
 
     def test(self, cmd=None):
-        if cmd in ['self', 'info']:
-            result = self.snmp_get(
-                oid='1.3.6.1.2.1.1.1.0', timeout=get_timeout(), rf=str)
+        if cmd == 'module':
+            return 'default' if not netsnmp else 'netsnmp'
+        elif cmd in ['self', 'info']:
+            o = 'iso.3.6.1.2.1.1.1.0'
+            if netsnmp:
+                try:
+                    result = self.create_session(get_timeout()).get(
+                        netsnmp.VarList(o))[0].decode()
+                except:
+                    log_traceback()
+                    result = None
+            else:
+                result = self.snmp_get(oid=o, timeout=get_timeout(), rf=str)
             if result:
                 return 'OK' if cmd == 'self' else result
             else:
                 return 'FAILED' if cmd == 'self' else None
         else:
-            return {'info': 'get equipment model/vendor'}
+            return {
+                'info': 'get equipment model/vendor',
+                'module': 'current SNMP module'
+            }

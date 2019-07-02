@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.1"
+__version__ = "1.2.0"
 __description__ = "AKCP THSXX temperature and humidity sensor"
 
 __api__ = 4
@@ -45,7 +45,14 @@ Some pysnmp versions have a bug which throws ValueConstraintError exception
 when sensor data is processed despite the data is good. Quick and dirty fix is
 to turn on debug, perform PHI self test, get an exception trace and disable the
 value testing in pysnmp or pyasn1.
+
+For production it is recommended to install python "python3-netsnmp" module.
 """
+
+try:
+    import netsnmp
+except:
+    netsnmp = None
 
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
 from eva.uc.driverapi import log_traceback
@@ -88,18 +95,32 @@ class PHI(GenericPHI):
         work_oids = {'t': 16, 'h': 17}
         wo = work_oids.get(port)
         if wo is None: return None
-        snmp_oid = '.1.3.6.1.4.1.3854.1.2.2.1.%u.1.3.%u' % (
+        snmp_oid = 'iso.3.6.1.4.1.3854.1.2.2.1.%u.1.3.%u' % (
             wo, self.sensor_port - 1)
         _timeout = timeout / self.snmp_tries
-        return snmp.get(
-            snmp_oid,
-            self.snmp_host,
-            self.snmp_port,
-            self.community,
-            _timeout,
-            self.snmp_tries - 1,
-            rf=int,
-            snmp_ver=1)
+        if netsnmp:
+            try:
+                sess = netsnmp.Session(
+                    Version=1,
+                    DestHost=self.snmp_host,
+                    RemotePort=self.snmp_port,
+                    Community=self.community,
+                    Timeout=int(_timeout * 1000000),
+                    Retries=self.snmp_tries - 1)
+                return sess.get(netsnmp.VarList(snmp_oid))[0].decode()
+            except:
+                log_traceback()
+                return None
+        else:
+            return snmp.get(
+                snmp_oid,
+                self.snmp_host,
+                self.snmp_port,
+                self.community,
+                _timeout,
+                self.snmp_tries - 1,
+                rf=int,
+                snmp_ver=1)
 
     def start(self):
         eva.traphandler.subscribe(self)
@@ -121,7 +142,9 @@ class PHI(GenericPHI):
         return
 
     def test(self, cmd=None):
-        if cmd == 'info':
+        if cmd == 'module':
+            return 'default' if not netsnmp else 'netsnmp'
+        elif cmd == 'info':
             name = snmp.get(
                 '.1.3.6.1.4.1.3854.1.1.8.0',
                 self.snmp_host,
@@ -143,4 +166,7 @@ class PHI(GenericPHI):
             t = self.get('t', timeout=get_timeout())
             h = self.get('h', timeout=get_timeout())
             return 'OK' if t and h else 'FAILED'
-        return {'info': 'returns relay ip module name and version'}
+        return {
+                'info': 'returns relay ip module name and version',
+                'module': 'current SNMP module'
+                }
