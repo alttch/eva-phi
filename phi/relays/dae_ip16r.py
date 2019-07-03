@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 __description__ = "Denkovi relay smartDEN-IP-16R"
 
 __api__ = 4
@@ -134,13 +134,15 @@ class PHI(GenericPHI):
                     Community=community,
                     Timeout=int(_timeout * 1000000),
                     Retries=self.snmp_tries - 1)
-                oid = netsnmp.VarList(self.oid_work)
-                sess.walk(oid)
+                oid = netsnmp.VarList(
+                    '%s.%u' % (self.oid_work, self.port_shift + 1))
+                sess.getbulk(0, self.port_max, oid)
                 result = {}
                 for i, v in enumerate(oid):
                     result[str(i + 1)] = v.val.decode()
                 return result
-            except:
+            except Exception as e:
+                self.log_error(e)
                 log_traceback()
                 return None
         else:
@@ -149,14 +151,31 @@ class PHI(GenericPHI):
             except:
                 return None
             if port < 1 or port > self.port_max: return None
-            return snmp.get(
-                '%s.%u' % (self.oid_work, port + self.port_shift),
-                host,
-                snmp_port,
-                community,
-                _timeout,
-                tries - 1,
-                rf=int)
+            if netsnmp:
+                try:
+                    sess = netsnmp.Session(
+                        Version=2,
+                        DestHost=host,
+                        RemotePort=snmp_port,
+                        Community=community,
+                        Timeout=int(_timeout * 1000000),
+                        Retries=self.snmp_tries - 1)
+                    oid = netsnmp.VarList(
+                        '%s.%u' % (self.oid_work, port + self.port_shift))
+                    return sess.get(oid)[0].decode()
+                except Exception as e:
+                    self.log_error(e)
+                    log_traceback()
+                    return None
+            else:
+                return snmp.get(
+                    '%s.%u' % (self.oid_work, port + self.port_shift),
+                    host,
+                    snmp_port,
+                    community,
+                    _timeout,
+                    tries - 1,
+                    rf=int)
 
     def set(self, port=None, data=None, cfg=None, timeout=0):
         if cfg:
