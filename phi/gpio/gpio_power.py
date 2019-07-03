@@ -1,13 +1,13 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 __description__ = "GPIO power"
 
 __api__ = 5
 __required__ = []
 __mods_required__ = 'gpiozero'
-__lpi_default__ = 'sensor'
+__lpi_default__ = None
 __equipment__ = 'GPIO'
 __features__ = []
 __config_help__ = [{
@@ -40,20 +40,21 @@ class PHI(GenericPHI):
     def __init__(self, **kwargs):
         self.ports = self.phi_cfg.get('port')
         self.devices = []
-
-    def start(self):
         try:
-            gpiozero = importlib.import_module('gpiozero')
+            self.gpiozero = importlib.import_module('gpiozero')
         except:
             self.log_error('gpiozero python module not found')
+            self.ready = False
             return
+
+    def start(self):
         if self.ports:
             ports = self.ports
             if not isinstance(ports, list):
                 ports = [ports]
             for p in ports:
                 try:
-                    d = gpiozero.DigitalOutputDevice(int(p))
+                    d = self.gpiozero.DigitalOutputDevice(int(p))
                     d.on()
                     self.devices.append(d)
                 except:
@@ -72,14 +73,10 @@ class PHI(GenericPHI):
     def test(self, cmd=None):
         if cmd == 'self':
             try:
-                if os.path.isdir('/sys/bus/gpio'):
-                    try:
-                        importlib.import_module('gpiozero')
-                    except:
-                        raise Exception('gpiozero python module not found')
-                    return 'OK'
-                else:
+                if not os.path.isdir('/sys/bus/gpio'):
                     raise Exception('gpio bus not found')
+                else:
+                    return 'OK'
             except:
                 log_traceback()
                 return 'FAILED'

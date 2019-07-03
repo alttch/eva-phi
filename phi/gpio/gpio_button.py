@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 __description__ = "GPIO buttons"
 
 __api__ = 4
@@ -49,13 +49,14 @@ class PHI(GenericPHI):
         self.ports = self.phi_cfg.get('port')
         self.no_pullup = val_to_boolean(self.phi_cfg.get('no_pullup'))
         self.devices = []
-
-    def start(self):
         try:
-            gpiozero = importlib.import_module('gpiozero')
+            self.gpiozero = importlib.import_module('gpiozero')
         except:
             self.log_error('gpiozero python module not found')
+            self.ready = False
             return
+
+    def start(self):
         if self.ports:
             ports = self.ports
             if not isinstance(ports, list):
@@ -67,7 +68,7 @@ class PHI(GenericPHI):
                         handle_phi_event(self, a, {str(a): '1'})
                     rf = lambda a=str(_p):  \
                         handle_phi_event(self, a, {str(a): '0'})
-                    d = gpiozero.Button(_p, pull_up=not self.no_pullup)
+                    d = self.gpiozero.Button(_p, pull_up=not self.no_pullup)
                     d.when_pressed = pf
                     d.when_released = rf
                     self.devices.append(d)
@@ -85,14 +86,10 @@ class PHI(GenericPHI):
     def test(self, cmd=None):
         if cmd == 'self':
             try:
-                if os.path.isdir('/sys/bus/gpio'):
-                    try:
-                        importlib.import_module('gpiozero')
-                    except:
-                        raise Exception('gpiozero python module not found')
-                    return 'OK'
-                else:
+                if not os.path.isdir('/sys/bus/gpio'):
                     raise Exception('gpio bus not found')
+                else:
+                    return 'OK'
             except:
                 log_traceback()
                 return 'FAILED'
