@@ -54,20 +54,21 @@ class PHI(GenericPHI):
                 try:
                     if hasattr(self, 'get_shared_namespace'):
                         gpios = self.get_shared_namespace('gpiozero')
-                        if not hasattr(gpios, 'pins'):
-                            gpios.pins = {}
                     else:
                         gpios = None
                         self.log_warning(
                             'Driver API below v7, PHI set/reload is unavailable'
                         )
-                    p = int(p)
-                    if gpios and p in gpios.pins:
-                        d = gpios.pins[p]
+                    if gpios:
+                        with gpios.locker:
+                            d_id = 'port_'.format(p)
+                            if gpios.has(d_id):
+                                d = gpios.get(d_id)
+                            else:
+                                d = gpiozero.DigitalOutputDevice(p)
+                                gpios.set(d_id, d)
                     else:
                         d = gpiozero.DigitalOutputDevice(p)
-                        if gpios:
-                            gpios.pins[p] = d
                     self.devices[str(p)] = d
                 except Exception as e:
                     log_traceback()
