@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.3"
+__version__ = "1.2.0"
 __description__ = "Denkovi relay smartDEN-IP-16R"
 
 __api__ = 4
@@ -50,6 +50,9 @@ configuration.
 
 host and communities should be specified either in driver primary configuration
 or in each unit configuration which uses the driver with this PHI.
+
+For production it is recommended to install python "python3-netsnmp" module. As
+soon as it is detected, PHI report "aao_get" and "aao_set" features.
 """
 
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
@@ -63,6 +66,13 @@ import eva.uc.drivers.tools.snmp as snmp
 import pysnmp.proto.rfc1902 as rfc1902
 
 from eva.uc.driverapi import phi_constructor
+
+try:
+    import netsnmp
+    __features__.append('aao_get')
+    __features__.append('aao_set')
+except:
+    netsnmp = None
 
 
 class PHI(GenericPHI):
@@ -85,26 +95,22 @@ class PHI(GenericPHI):
         self.port_max = 16
         self.snmp_host, self.snmp_port = parse_host_port(
             self.phi_cfg.get('host'), 161)
-        self.oid_name = '.1.3.6.1.4.1.42505.6.1.1.0'
-        self.oid_version = '.1.3.6.1.4.1.42505.6.1.2.0'
-        self.oid_work = '.1.3.6.1.4.1.42505.6.2.3.1.3'
+        self.oid_name = 'iso.3.6.1.4.1.42505.6.1.1.0'
+        self.oid_version = 'iso.3.6.1.4.1.42505.6.1.2.0'
+        self.oid_work = 'iso.3.6.1.4.1.42505.6.2.3.1.3'
 
     def get_ports(self):
         return self.generate_port_list(
             port_max=16, description='relay port #{}')
 
     def get(self, port=None, cfg=None, timeout=0):
-        try:
-            port = int(port)
-        except:
-            return None
         if cfg:
             host, snmp_port = parse_host_port(cfg.get('host'), 161)
             community = cfg.get('community')
             if not community: community = cfg.get('read_community')
             tries = cfg.get('retries')
             try:
-                tries = int(tries)
+                tries = int(tries) + 1
             except:
                 tries = None
         else:
@@ -118,23 +124,41 @@ class PHI(GenericPHI):
             community = self.snmp_read_community
         if tries is None: tries = self.snmp_tries
         if not host or not community: return None
-        if port < 1 or port > self.port_max: return None
         _timeout = timeout / tries
-        return snmp.get(
-            '%s.%u' % (self.oid_work, port + self.port_shift),
-            host,
-            snmp_port,
-            community,
-            _timeout,
-            tries - 1,
-            rf=int)
+        if not port and netsnmp:
+            try:
+                sess = netsnmp.Session(
+                    Version=2,
+                    DestHost=host,
+                    RemotePort=snmp_port,
+                    Community=community,
+                    Timeout=int(_timeout * 1000000),
+                    Retries=self.snmp_tries - 1)
+                oid = netsnmp.VarList(self.oid_work)
+                sess.walk(oid)
+                result = {}
+                for i, v in enumerate(oid):
+                    result[str(i + 1)] = v.val.decode()
+                return result
+            except:
+                log_traceback()
+                return None
+        else:
+            try:
+                port = int(port)
+            except:
+                return None
+            if port < 1 or port > self.port_max: return None
+            return snmp.get(
+                '%s.%u' % (self.oid_work, port + self.port_shift),
+                host,
+                snmp_port,
+                community,
+                _timeout,
+                tries - 1,
+                rf=int)
 
     def set(self, port=None, data=None, cfg=None, timeout=0):
-        try:
-            port = int(port)
-            val = int(data)
-        except:
-            return False
         if cfg:
             host, snmp_port = parse_host_port(cfg.get('host'), 161)
             community = cfg.get('community')
@@ -155,29 +179,96 @@ class PHI(GenericPHI):
             community = self.snmp_write_community
         if tries is None: tries = self.snmp_tries
         if not host or not community: return False
-        if port < 1 or port > self.port_max or val < 0 or val > 1: return False
         _timeout = timeout / self.snmp_tries
-        return snmp.set('%s.%u' % (self.oid_work, port + self.port_shift),
-                        rfc1902.Integer(val), host, snmp_port, community,
-                        _timeout, tries - 1)
+        if isinstance(port, list) and netsnmp:
+            try:
+                sess = netsnmp.Session(
+                    Version=2,
+                    DestHost=host,
+                    RemotePort=snmp_port,
+                    Community=community,
+                    Timeout=int(_timeout * 1000000),
+                    Retries=self.snmp_tries - 1)
+                vts = ()
+                for p, v in zip(port, data):
+                    try:
+                        port = int(p)
+                        val = int(v)
+                        if port < 1 or \
+                                port > self.port_max or val < 0 or val > 1:
+                            raise Exception('port out of range')
+                    except Exception as e:
+                        self.log_error(e)
+                        log_traceback()
+                        return False
+                    vts += (netsnmp.Varbind(
+                        '%s.%u' % (self.oid_work, port + self.port_shift), '',
+                        str(v).encode(), 'INTEGER'),)
+                return True if sess.set(netsnmp.VarList(*vts)) else False
+            except:
+                log_traceback()
+                return False
+        else:
+            try:
+                port = int(port)
+                val = int(data)
+            except:
+                return False
+            if port < 1 or port > self.port_max or val < 0 or val > 1:
+                return False
+            return snmp.set('%s.%u' % (self.oid_work, port + self.port_shift),
+                            rfc1902.Integer(val), host, snmp_port, community,
+                            _timeout, tries - 1)
 
     def test(self, cmd=None):
+        if cmd == 'module':
+            return 'default' if not netsnmp else 'netsnmp'
         if cmd == 'self' and self.snmp_host is None: return 'OK'
         if cmd == 'info' or cmd == 'self':
-            name = snmp.get(
-                self.oid_name,
-                self.snmp_host,
-                self.snmp_port,
-                self.snmp_read_community,
-                timeout=get_timeout() - 0.5)
+            if netsnmp:
+                try:
+                    sess = netsnmp.Session(
+                        Version=2,
+                        DestHost=self.snmp_host,
+                        RemotePort=self.snmp_port,
+                        Community=self.snmp_read_community,
+                        Timeout=int(get_timeout() * 1000000),
+                        Retries=self.snmp_tries - 1)
+                except:
+                    log_traceback()
+                    sess = None
+            if netsnmp:
+                try:
+                    name = sess.get(netsnmp.VarList(self.oid_name))[0].decode()
+                except:
+                    log_traceback()
+                    name = None
+            else:
+                name = snmp.get(
+                    self.oid_name,
+                    self.snmp_host,
+                    self.snmp_port,
+                    self.snmp_read_community,
+                    timeout=get_timeout(),
+                    retries=self.snmp_tries - 1)
             if not name: return 'FAILED'
             if name and cmd == 'self': return 'OK'
-            version = snmp.get(
-                self.oid_version,
-                self.snmp_host,
-                self.snmp_port,
-                self.snmp_read_community,
-                timeout=get_timeout() - 0.5)
+            if netsnmp:
+                try:
+                    version = sess.get(netsnmp.VarList(
+                        self.oid_version))[0].decode()
+                except:
+                    version = None
+            else:
+                version = snmp.get(
+                    self.oid_version,
+                    self.snmp_host,
+                    self.snmp_port,
+                    self.snmp_read_community,
+                    timeout=get_timeout())
             if not version: return 'FAILED'
             return '%s %s' % (name.strip(), version.strip())
-        return {'info': 'returns relay ip module name and version'}
+        return {
+            'info': 'returns relay ip module name and version',
+            'module': 'current SNMP module'
+        }
