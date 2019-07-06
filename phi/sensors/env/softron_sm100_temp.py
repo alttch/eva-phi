@@ -18,7 +18,7 @@ __config_help__ = [{
 }, {
     'name': 'addr',
     'help': 'modbus addr',
-    'type': 'int',
+    'type': 'aint',
     'required': True
 }]
 __get_help__ = []

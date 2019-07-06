@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 __description__ = "Denkovi ModBus relay DAE-RO16"
 
 __api__ = 5
@@ -18,7 +18,7 @@ __config_help__ = [{
 }, {
     'name': 'addr',
     'help': 'modbus addr',
-    'type': 'int',
+    'type': 'aint',
     'required': True
 }]
 __get_help__ = []
@@ -37,6 +37,8 @@ import eva.uc.modbus as modbus
 
 from eva.uc.driverapi import phi_constructor
 
+from eva.tools import safe_int
+
 
 class PHI(GenericPHI):
 
@@ -49,7 +51,7 @@ class PHI(GenericPHI):
             self.ready = False
             return
         try:
-            self.addr = int(self.phi_cfg.get('addr'))
+            self.addr = safe_int(self.phi_cfg.get('addr'))
         except:
             self.log_error('modbus addr not specified or invalid')
             self.ready = False

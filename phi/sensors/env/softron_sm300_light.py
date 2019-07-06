@@ -18,7 +18,7 @@ __config_help__ = [{
 }, {
     'name': 'addr',
     'help': 'modbus addr',
-    'type': 'int',
+    'type': 'aint',
     'required': True
 }]
 __get_help__ = []
@@ -37,6 +37,8 @@ from eva.uc.driverapi import phi_constructor
 
 import eva.uc.modbus as modbus
 
+from eva.tools import safe_int
+
 
 class PHI(GenericPHI):
 
@@ -48,7 +50,7 @@ class PHI(GenericPHI):
             self.ready = False
             return
         try:
-            self.addr = int(self.phi_cfg.get('addr'))
+            self.addr = safe_int(self.phi_cfg.get('addr'))
         except:
             self.log_error('modbus addr not specified or invalid')
             self.ready = False
