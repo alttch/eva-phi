@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.1.2"
+__version__ = "1.2.0"
 __description__ = "Denkovi ModBus relay DAE-RO16"
 
 __api__ = 5
@@ -16,8 +16,8 @@ __config_help__ = [{
     'type': 'str',
     'required': True
 }, {
-    'name': 'unit',
-    'help': 'modbus unit ID',
+    'name': 'addr',
+    'help': 'modbus addr',
     'type': 'int',
     'required': True
 }]
@@ -49,9 +49,9 @@ class PHI(GenericPHI):
             self.ready = False
             return
         try:
-            self.unit_id = int(self.phi_cfg.get('unit'))
+            self.addr = int(self.phi_cfg.get('addr'))
         except:
-            self.log_error('modbus unit ID not specified or invalid')
+            self.log_error('modbus addr not specified or invalid')
             self.ready = False
             return
 
@@ -66,14 +66,14 @@ class PHI(GenericPHI):
                     raise Exception('unable to get modbus port {}'.format(
                         self.modbus_port))
                 try:
-                    result = mb.write_register(18, new_id, unit=self.unit_id)
+                    result = mb.write_register(18, new_id, addr=self.addr)
                 except:
                     log_traceback()
                     result = None
                 mb.release()
                 if not result or result.isError(): return 'FAILED'
-                self.unit_id = new_id
-                self.phi_cfg['unit'] = new_id
+                self.addr = new_id
+                self.phi_cfg['addr'] = new_id
                 return 'OK'
             except:
                 log_traceback()
@@ -90,7 +90,7 @@ class PHI(GenericPHI):
     def get(self, port=None, cfg=None, timeout=0):
         mb = modbus.get_port(self.modbus_port, timeout)
         if not mb: return None
-        rr = mb.read_coils(0, 16, unit=self.unit_id)
+        rr = mb.read_coils(0, 16, addr=self.addr)
         mb.release()
         if rr.isError(): return None
         result = {}
@@ -110,7 +110,7 @@ class PHI(GenericPHI):
         if p < 1 or p > self.port_max or val < 0 or val > 1: return False
         mb = modbus.get_port(self.modbus_port, timeout)
         if not mb: return None
-        result = mb.write_coil(p - 1, True if val else False, unit=self.unit_id)
+        result = mb.write_coil(p - 1, True if val else False, addr=self.addr)
         mb.release()
         return not result.isError()
 
@@ -127,7 +127,7 @@ class PHI(GenericPHI):
                 reg = 22
             else:
                 reg = 21
-            rr = mb.read_holding_registers(reg, 1, unit=self.unit_id)
+            rr = mb.read_holding_registers(reg, 1, addr=self.addr)
             mb.release()
             if rr.isError(): return 'FAILED'
             try:

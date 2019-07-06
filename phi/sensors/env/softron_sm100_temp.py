@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "0.0.2"
+__version__ = "0.1.0"
 __description__ = "Softron SM-100 temperature sensor"
 
 __api__ = 4
@@ -16,8 +16,8 @@ __config_help__ = [{
     'type': 'str',
     'required': True
 }, {
-    'name': 'unit',
-    'help': 'modbus unit ID',
+    'name': 'addr',
+    'help': 'modbus addr',
     'type': 'int',
     'required': True
 }]
@@ -48,9 +48,9 @@ class PHI(GenericPHI):
             self.ready = False
             return
         try:
-            self.unit_id = int(self.phi_cfg.get('unit'))
+            self.addr = int(self.phi_cfg.get('addr'))
         except:
-            self.log_error('modbus unit ID not specified or invalid')
+            self.log_error('modbus addr not specified or invalid')
             self.ready = False
             return
 
@@ -61,7 +61,7 @@ class PHI(GenericPHI):
         mb = modbus.get_port(self.modbus_port, timeout)
         if not mb: return None
         try:
-            rr = mb.read_input_registers(30004, 1, unit=self.unit_id)
+            rr = mb.read_input_registers(30004, 1, addr=self.addr)
             mb.release()
             if rr.isError():
                 self.log_debug(rr)
@@ -76,7 +76,7 @@ class PHI(GenericPHI):
     def test(self, cmd=None):
         if cmd == 'self':
             mb = modbus.get_port(self.modbus_port, get_timeout())
-            rr = mb.read_input_registers(30000, 1, unit=self.unit_id)
+            rr = mb.read_input_registers(30000, 1, addr=self.addr)
             mb.release()
             try:
                 if rr.isError():
@@ -89,7 +89,7 @@ class PHI(GenericPHI):
                 return 'FAILED'
         elif cmd == 'fwver':
             mb = modbus.get_port(self.modbus_port, get_timeout())
-            rr = mb.read_input_registers(30001, 1, unit=self.unit_id)
+            rr = mb.read_input_registers(30001, 1, addr=self.addr)
             mb.release()
             if rr.isError():
                 self.log_error(rr)
