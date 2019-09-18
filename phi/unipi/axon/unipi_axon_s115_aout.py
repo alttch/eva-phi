@@ -2,7 +2,7 @@ __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
 __version__ = "1.0.0"
-__description__ = "S115 AOUT"
+__description__ = "UniPi Axon S115 AOUT"
 
 __api__ = 4
 __required__ = ['port_get', 'port_set', 'value', 'status', 'action']
@@ -25,7 +25,7 @@ __get_help__ = []
 __set_help__ = []
 
 __help__ = """
-PHI for AXON S115 analog output. Modbus port should be created in UC
+PHI for Axon S115 analog output. Modbus port should be created in UC
 before loading.
 """
 
