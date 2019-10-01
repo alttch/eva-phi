@@ -8,7 +8,7 @@ __api__ = 5
 __required__ = ['port_get', 'value']
 __mods_required__ = []
 __lpi_default__ = 'sensor'
-__equipment__ = 'IP'
+__equipment__ = 'NET-IP'
 __features__ = []
 __config_help__ = [{
     'name': 'url',
