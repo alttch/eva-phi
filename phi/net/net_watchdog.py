@@ -88,7 +88,7 @@ class PHI(GenericPHI):
                             url, h, hr))
                         return 1 if h == hr else None
                     else:
-                        return 1 if self.response == r.text else None
+                        return 1 if self.response == r.text.strip() else None
                 else:
                     return 1
             else:
