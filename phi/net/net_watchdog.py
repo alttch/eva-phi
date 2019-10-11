@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __description__ = "Network watchdog"
 
 __api__ = 5
@@ -19,6 +19,11 @@ __config_help__ = [{
     'name': 'response',
     'help': 'HTTP response',
     'type': 'str',
+    'required': False
+}, {
+    'name': 'retries',
+    'help': 'retries (default: 2)',
+    'type': 'int',
     'required': False
 }, {
     'name': 'timeout',
@@ -52,6 +57,7 @@ from eva.uc.driverapi import get_timeout
 import os
 import requests
 import hashlib
+import time
 
 from eva.uc.driverapi import phi_constructor
 
@@ -67,6 +73,12 @@ class PHI(GenericPHI):
         except:
             self.log_error('Invalid timeout value')
             self.ready = False
+            return
+        try:
+            self.tries = int(self.phi_cfg.get('retries', 2)) + 1
+        except:
+            self.log_error('Invalid retries value')
+            self.ready = False
 
     def get(self, port=None, cfg=None, timeout=0):
 
@@ -74,7 +86,7 @@ class PHI(GenericPHI):
             return os.system('fping -t {} -c {} {}'.format(
                 timeout, count, host)) == 0
 
-        try:
+        def check(port):
             if self.url:
                 url = self.url.format(port=port)
                 r = requests.get(url, timeout=self.timeout)
@@ -86,13 +98,23 @@ class PHI(GenericPHI):
                         hr = self.response[7:]
                         self.log_debug('{} sha256: {}, required: {}'.format(
                             url, h, hr))
-                        return 1 if h == hr else None
+                        return h == hr
                     else:
-                        return 1 if self.response == r.text.strip() else None
+                        return self.response == r.text.strip()
                 else:
-                    return 1
+                    return True
             else:
-                return 1 if ping(port, timeout=self.timeout * 1000) else None
+                return ping(port, timeout=self.timeout * 1000)
+
+        try:
+            t_start = time.time()
+            for tr in range(0, self.tries):
+                if t_start + timeout < time.time():
+                    return None
+                if check(port):
+                    return 1
+                time.sleep(self.timeout)
+            return None
         except:
             log_traceback()
             return None
