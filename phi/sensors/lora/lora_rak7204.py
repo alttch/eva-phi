@@ -31,7 +31,6 @@ Ports available: bat, hum, pres, temp, gas
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
 from eva.uc.driverapi import handle_phi_event
 from eva.uc.driverapi import log_traceback
-from eva.uc.driverapi import critical
 from eva.uc.driverapi import phi_constructor
 
 
