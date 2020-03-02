@@ -24,7 +24,7 @@ files = sorted(os.popen('find ./phi -name "*.py"').readlines())
 for f in files:
     x = f.split('/')
     mod = x[-1].strip()[:-3]
-    cat = '/'.join(x[4:-1])
+    cat = '/'.join(x[2:-1])
     code = ''
     with open(f.strip()) as m:
         s = True
