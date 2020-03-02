@@ -39,7 +39,7 @@ for f in files:
     except:
         pass
     module = {}
-    module['uri'] = '/'.join(x[3:]).strip()
+    module['uri'] = '/'.join(x[1:]).strip()
     module['category'] = cat
     module['name'] = os.path.basename(f.strip()).split('.')[0]
     module['version'] = d.get('__version__')
