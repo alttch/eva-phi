@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2019 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __description__ = "Network watchdog"
 
 __api__ = 5
@@ -89,8 +89,11 @@ class PHI(GenericPHI):
         def check(port):
             if self.url:
                 url = self.url.format(port=port)
-                r = requests.get(url, timeout=self.timeout)
-                if not r.ok:
+                try:
+                    r = requests.get(url, timeout=self.timeout)
+                    if not r.ok:
+                        raise Exception
+                except:
                     return None
                 if self.response:
                     if self.response.startswith('sha256:'):
