@@ -17,7 +17,8 @@ eva_version = {
     5: '3.2.2',
     6: '3.2.3',
     7: '3.2.4',
-    8: '3.3.0'
+    8: '3.3.0',
+    9: '3.3.1'
 }
 
 files = sorted(os.popen('find ./phi -name "*.py"').readlines())
@@ -45,7 +46,8 @@ for f in files:
     module['version'] = d.get('__version__')
     module['description'] = d.get('__description__')
     equipment = d.get('__equipment__')
-    if isinstance(equipment, list): equipment = ', '.join(equipment)
+    if isinstance(equipment, list):
+        equipment = ', '.join(equipment)
     module['equipment'] = equipment
     module['api'] = d.get('__api__')
     module['eva_version'] = eva_version[module['api']]
