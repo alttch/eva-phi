@@ -1,6 +1,6 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
-__license__ = 'Apache License 2.0'
+__license__ = 'GNU GPL v3'
 __version__ = '1.0.0'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
@@ -67,7 +67,6 @@ import os
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
 from eva.uc.driverapi import log_traceback, get_timeout, phi_constructor
 from eva.exceptions import InvalidParameter
-from eva.uc.drivers.tools.cpppo_enip import SafeProxy
 
 
 class PHI(GenericPHI):
@@ -78,6 +77,7 @@ class PHI(GenericPHI):
         if self.phi_cfg.get('simple'):
             xkv['route_path'] = False
             xkv['send_path'] = ''
+        from eva.uc.drivers.tools.cpppo_enip import SafeProxy
         self.proxy = SafeProxy(host=self.phi_cfg.get('host'),
                                port=self.phi_cfg.get('port'),
                                timeout=self.phi_cfg.get('timeout',
@@ -186,13 +186,13 @@ class PHI(GenericPHI):
         elif cmd == 'info':
             identity = self.proxy.operate('list_identity')
             return {
-                'product_name': str(identity['product_name']),
-                'serial_number': str(identity['serial_number']),
+                'product_name': str(identity.get('product_name')),
+                'serial_number': str(identity.get('serial_number'))
             }
         elif cmd == 'help':
             return {
-                'info': 'Get equpment identity',
-                'TAG': 'Get/Set tag opts (TAG=x for set)'
+                'info': 'get equpment identity',
+                '<TAG>': 'get/set tag opts (<TAG>=<VALUE> for set)'
             }
         else:
             if '=' in cmd:
