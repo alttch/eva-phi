@@ -120,7 +120,7 @@ class PHI(GenericPHI):
                 tp = self.tags_t.get(p)
                 if tp:
                     op += f'({tp})'
-                op += str(v[1]) if self._has_feature.value else str(v)
+                op += str(v[1]) if isinstance(v, list) else str(v)
                 ops.append(op)
             self.log_debug(f'EnIP OP {" ".join(ops)}')
             result = self.proxy.operate('write', ops)
