@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
 __required__ = ['port_get', 'port_set', 'action']
@@ -60,6 +60,9 @@ TAG:TYPE. Valid types are:
 
 REAL, SINT, USINT, INT, UINT, DINT, UDINT, BOOL, WORD, DWORD, IPADDR, STRING,
 SSTRING
+
+If timeout it specified, it MUST be small enough, otherwise PHI will
+not even try to connect to En/IP equipment (default is core timeout - 2 sec).
 """
 
 import os
@@ -73,6 +76,11 @@ class PHI(GenericPHI):
 
     @phi_constructor
     def __init__(self, **kwargs):
+
+        def _get_timeout():
+            t = get_timeout() - 2
+            return t if t > 0 else 1
+
         xkv = {}
         if self.phi_cfg.get('simple'):
             xkv['route_path'] = False
@@ -81,7 +89,7 @@ class PHI(GenericPHI):
         self.proxy = SafeProxy(host=self.phi_cfg.get('host'),
                                port=self.phi_cfg.get('port'),
                                timeout=self.phi_cfg.get('timeout',
-                                                        get_timeout()),
+                                                        _get_timeout()),
                                **xkv)
         self.tags = []
         self.tags_t = {}
@@ -189,9 +197,12 @@ class PHI(GenericPHI):
                 'product_name': str(identity.get('product_name')),
                 'serial_number': str(identity.get('serial_number'))
             }
+        elif cmd == 'get':
+            return self.get(timeout=get_timeout())
         elif cmd == 'help':
             return {
                 'info': 'get equpment identity',
+                'get': 'get all tags',
                 '<TAG>': 'get/set tag opts (<TAG>=<VALUE> for set)'
             }
         else:
