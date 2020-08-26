@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.0.1'
+__version__ = '1.0.3'
 __description__ = 'Ethernet/IP sensors generic'
 __api__ = 9
 __required__ = ['port_get', 'value']
@@ -29,6 +29,16 @@ __config_help__ = [{
     'name': 'timeout',
     'help': 'Timeout',
     'type': 'int',
+    'required': False
+}, {
+    'name': 'route_path',
+    'help': 'Route path (X/Y, e.g. 1/0)',
+    'type': 'str',
+    'required': False
+}, {
+    'name': 'send_path',
+    'help': 'Send path (@X/Y, e.g. @6/1)',
+    'type': 'str',
     'required': False
 }, {
     'name': 'taglist',
@@ -74,6 +84,9 @@ class PHI(GenericPHI):
         if self.phi_cfg.get('simple'):
             xkv['route_path'] = False
             xkv['send_path'] = ''
+        else:
+            xkv['route_path'] = self.phi_cfg.get('route_path')
+            xkv['send_path'] = self.phi_cfg.get('send_path')
         from eva.uc.drivers.tools.cpppo_enip import SafeProxy
         self.proxy = SafeProxy(host=self.phi_cfg.get('host'),
                                port=self.phi_cfg.get('port'),
