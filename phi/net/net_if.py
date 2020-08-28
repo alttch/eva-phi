@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 __description__ = "Bandwidth meter/interface monitor"
 
 __api__ = 6
@@ -56,7 +56,7 @@ from eva.tools import parse_host_port
 import eva.uc.drivers.tools.snmp as snmp
 
 from functools import partial
-from time import time
+from time import perf_counter
 
 import threading
 
@@ -67,7 +67,8 @@ class PHI(GenericPHI):
     def __init__(self, **kwargs):
         host, port = parse_host_port(self.phi_cfg.get('host'), 161)
         community = self.phi_cfg.get('community')
-        if not community: community = 'public'
+        if not community:
+            community = 'public'
         if not host:
             self.log_error('Host not specified')
             self.ready = False
@@ -78,42 +79,43 @@ class PHI(GenericPHI):
             retries = 0
         self.t_data = {}
         self.t_lock = threading.Lock()
-        self.snmp_get = partial(
-            snmp.get,
-            host=host,
-            port=port,
-            community=community,
-            retries=retries)
+        self.snmp_get = partial(snmp.get,
+                                host=host,
+                                port=port,
+                                community=community,
+                                retries=retries)
         self.host = host
         self.port = port
         self.community = community
         self.retries = retries
 
     def create_session(self, timeout):
-        return netsnmp.Session(
-            Version=2,
-            DestHost=self.host,
-            RemotePort=self.port,
-            Community=self.community,
-            Timeout=int(timeout * 1000000),
-            Retries=self.retries)
+        return netsnmp.Session(Version=2,
+                               DestHost=self.host,
+                               RemotePort=self.port,
+                               Community=self.community,
+                               Timeout=int(timeout * 1000000),
+                               Retries=self.retries)
 
     def get_ports(self):
         ports = {}
         # get ports
-        for p in self.snmp_get(
-                oid='1.3.6.1.2.1.2.2.1.1', timeout=get_timeout(), walk=True):
+        for p in self.snmp_get(oid='1.3.6.1.2.1.2.2.1.1',
+                               timeout=get_timeout(),
+                               walk=True):
             port_number = int(p[1])
             ports[port_number] = {'port': str(port_number)}
         # get port names
-        for p in self.snmp_get(
-                oid='1.3.6.1.2.1.2.2.1.2', timeout=get_timeout(), walk=True):
+        for p in self.snmp_get(oid='1.3.6.1.2.1.2.2.1.2',
+                               timeout=get_timeout(),
+                               walk=True):
             port_number = int(str(p[0].getOid()).rsplit('.', 1)[1])
             if port_number in ports:
                 ports[port_number]['name'] = str(p[1])
         # get port speeds
-        for p in self.snmp_get(
-                oid='1.3.6.1.2.1.2.2.1.5', timeout=get_timeout(), walk=True):
+        for p in self.snmp_get(oid='1.3.6.1.2.1.2.2.1.5',
+                               timeout=get_timeout(),
+                               walk=True):
             port_number = int(str(p[0].getOid()).rsplit('.', 1)[1])
             if port_number in ports:
                 ports[port_number]['description'] = 'speed: {}'.format(p[1])
@@ -153,7 +155,7 @@ class PHI(GenericPHI):
                 oid = netsnmp.VarList('.1.3.6.1.2.1.2.2.1.7',
                                       '.1.3.6.1.2.1.2.2.1.10',
                                       '.1.3.6.1.2.1.2.2.1.16')
-                rtime = time()
+                rtime = perf_counter()
                 data = self.create_session(timeout).walk(oid)
                 result = {}
                 for v in oid:
@@ -168,27 +170,25 @@ class PHI(GenericPHI):
                                                v.type == 'COUNTER64')
                 return result
             else:
-                time_start = time()
+                time_start = perf_counter()
                 dr, n = port.split('_')
                 # is port up?
-                if self.snmp_get(
-                        oid='1.3.6.1.2.1.2.2.1.7.{}'.format(n),
-                        timeout=timeout,
-                        rf=int) not in [1, 3]:
+                if self.snmp_get(oid='1.3.6.1.2.1.2.2.1.7.{}'.format(n),
+                                 timeout=timeout,
+                                 rf=int) not in [1, 3]:
                     self.log_warning('port {} is not operational'.format(port))
                     return None
                 if dr == 'in':
                     o = '10'
                 elif dr == 'out':
                     o = '16'
-                t2 = timeout - time() + time_start
+                t2 = timeout - perf_counter() + time_start
                 if t2 <= 0:
                     raise Exception('operation timeout')
-                data = self.snmp_get(
-                    oid='1.3.6.1.2.1.2.2.1.{}.{}'.format(o, n),
-                    timeout=t2,
-                    rf=None)
-                rtime = time()
+                data = self.snmp_get(oid='1.3.6.1.2.1.2.2.1.{}.{}'.format(o, n),
+                                     timeout=t2,
+                                     rf=None)
+                rtime = perf_counter()
                 tp = data[1].prettyPrintType().rsplit(' ', 1)[1]
                 if tp not in ['Counter32', 'Counter64']:
                     return None
