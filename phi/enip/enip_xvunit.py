@@ -1,14 +1,14 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.0.3'
+__version__ = '1.1.0'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
 __required__ = ['port_get', 'port_set', 'action']
 __mods_required__ = ''
 __lpi_default__ = 'basic'
 __equipment__ = ['Ethernet/IP']
-__features__ = ['aao_get', 'aao_set']
+__features__ = ['aao_get']
 __config_help__ = [{
     'name': 'host',
     'help': 'Ethernet/IP controller host',
@@ -63,13 +63,17 @@ __set_help__ = []
 __help__ = """
 Ethernet/IP units driver
 
-Tag list file: text file with one tag per line
+Tag list file: text file with one tag per line. Should be specified for bulk
+updates.
 
 In case of problems, it's highly recommended to specify tag variable type, as
 TAG:TYPE. Valid types are:
 
 REAL, SINT, USINT, INT, UINT, DINT, UDINT, BOOL, WORD, DWORD, IPADDR, STRING,
 SSTRING
+
+Tag types can be specified either in the tag list file (if defined) or as
+TAG:TYPE, or as type (_type) in the unit driver configuration.
 
 If timeout it specified, it MUST be small enough, otherwise PHI will
 not even try to connect to En/IP equipment (default is core timeout - 2 sec).
@@ -110,29 +114,37 @@ class PHI(GenericPHI):
         if self.phi_cfg.get('xv'):
             self._has_feature.value = True
             self._is_required.value = True
-        try:
-            with open(self.phi_cfg.get('taglist')) as fh:
-                for tag in fh.readlines():
-                    tag = tag.strip()
-                    if tag:
-                        tt = tag.rsplit(':', 1)
-                        if len(tt) < 2:
-                            tt.append(None)
-                        self.tags.append(tt[0])
-                        self.tags_t[tt[0]] = tt[1]
-        except:
-            log_traceback()
-            self.ready = False
+        if 'taglist' in self.phi_cfg:
+            try:
+                with open(self.phi_cfg.get('taglist')) as fh:
+                    for tag in fh.readlines():
+                        tag = tag.strip()
+                        if tag:
+                            tt = tag.rsplit(':', 1)
+                            if len(tt) < 2:
+                                tt.append(None)
+                            self.tags.append(tt[0])
+                            self.tags_t[tt[0]] = tt[1]
+            except:
+                log_traceback()
+                self.ready = False
 
     def set(self, port=None, data=None, cfg=None, timeout=0):
         try:
             ops = []
             for p, v in zip(port if isinstance(port, list) else [port],
                             data if isinstance(data, list) else [data]):
-                op = f'{p}='
-                tp = self.tags_t.get(p)
+                rpx = p.rsplit(':', 1)
+                rp = rpx[0]
+                try:
+                    tp = rpx[1]
+                except:
+                    tp = cfg.get('type') if cfg else None
+                op = f'{rp}='
+                if not tp:
+                    tp = self.tags_t.get(p)
                 if tp:
-                    op += f'({tp})'
+                    op += f'({tp.upper()})'
                 op += str(v[1]) if isinstance(v, tuple) or isinstance(
                     v, list) else str(v)
                 ops.append(op)
@@ -151,7 +163,11 @@ class PHI(GenericPHI):
     def get(self, port=None, cfg=None, timeout=0):
         try:
             result = {}
-            ttg = [port] if port else self.tags
+            if port:
+                port = port.rsplit(':', 1)[0]
+                ttg = [port]
+            else:
+                ttg = self.tags
             if not ttg:
                 return None
             data = self.proxy.operate('read', ttg)
@@ -191,11 +207,8 @@ class PHI(GenericPHI):
 
     def validate_config(self, config={}, config_type='config'):
         self.validate_config_whi(config=config, config_type=config_type)
-        try:
-            if not os.path.isfile(config['taglist']):
-                raise InvalidParameter('taglist file not found')
-        except KeyError:
-            raise InvalidParameter('taglist file not specified')
+        if 'taglist' in config and not os.path.isfile(config['taglist']):
+            raise InvalidParameter('taglist file not found')
 
     def test(self, cmd=None):
         if cmd == 'self':
@@ -212,7 +225,10 @@ class PHI(GenericPHI):
                 'serial_number': str(identity.get('serial_number'))
             }
         elif cmd == 'get':
-            return self.get(timeout=get_timeout())
+            if self.tags:
+                return self.get(timeout=get_timeout())
+            else:
+                return 'tag list not specified'
         elif cmd == 'help':
             return {
                 'info': 'get equpment identity',
