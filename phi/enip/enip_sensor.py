@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 __description__ = 'Ethernet/IP sensors generic'
 __api__ = 9
 __required__ = ['port_get', 'value']
@@ -63,6 +63,9 @@ not even try to connect to En/IP equipment (default is core timeout - 2 sec).
 
 Tag list file: text file with one tag per line. Should be specified for bulk
 updates.
+
+Arrays: specify port as TAG[x] for a single value or TAG[x-y] for the value
+range (will be get/set as a list, splitted with commas)
 """
 
 import os
@@ -73,6 +76,17 @@ from eva.exceptions import InvalidParameter
 
 
 class PHI(GenericPHI):
+
+    @staticmethod
+    def _parse_tag(tag):
+        if ':' in tag:
+            tag, tt = tag.rsplit(':', 1)
+            if '[' in tt:
+                tt, sfx = tt.split('[', 1)
+                tag = tag + '[' + sfx
+            return tag, tt
+        else:
+            return tag, None
 
     @phi_constructor
     def __init__(self, **kwargs):
@@ -102,7 +116,8 @@ class PHI(GenericPHI):
                     for tag in fh.readlines():
                         tag = tag.strip()
                         if tag:
-                            self.tags.append(tag.rsplit(':', 1)[0])
+                            tag, tag_type = self._parse_tag(tag)
+                            self.tags.append(tag)
             except:
                 log_traceback()
                 self.ready = False
@@ -111,8 +126,7 @@ class PHI(GenericPHI):
         try:
             result = {}
             if port:
-                port = port.rsplit(':', 1)[0]
-                ttg = [port]
+                ttg = [self._parse_tag(port)[0]]
             else:
                 ttg = self.tags
             if not ttg:
@@ -120,10 +134,13 @@ class PHI(GenericPHI):
             data = self.proxy.operate('read', ttg)
             for i, v in enumerate(data):
                 if v is not None:
-                    try:
-                        value = round(v[0], self.fp)
-                    except:
-                        value = v[0]
+                    values = []
+                    for val in v if isinstance(v, list) else [v]:
+                        try:
+                            values.append(round(val, self.fp))
+                        except:
+                            values.append(val)
+                    value = ','.join([str(val) for val in values])
                     result[ttg[i]] = str(value)
                 else:
                     self.log_error(f'Unable to read {ttg[i]}')

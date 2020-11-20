@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
 __required__ = ['port_get', 'port_set', 'action']
@@ -73,10 +73,13 @@ REAL, SINT, USINT, INT, UINT, DINT, UDINT, BOOL, WORD, DWORD, IPADDR, STRING,
 SSTRING
 
 Tag types can be specified either in the tag list file (if defined) or as
-TAG:TYPE, or as type (_type) in the unit driver configuration.
+type (_type) in the unit driver configuration.
 
 If timeout it specified, it MUST be small enough, otherwise PHI will
 not even try to connect to En/IP equipment (default is core timeout - 2 sec).
+
+Arrays: specify port as TAG[x] for a single value or TAG[x-y] for the value
+range (will be get/set as a list, splitted with commas)
 """
 
 import os
@@ -87,6 +90,17 @@ from eva.exceptions import InvalidParameter
 
 
 class PHI(GenericPHI):
+
+    @staticmethod
+    def _parse_tag(tag):
+        if ':' in tag:
+            tag, tt = tag.rsplit(':', 1)
+            if '[' in tt:
+                tt, sfx = tt.split('[', 1)
+                tag = tag + '[' + sfx
+            return tag, tt
+        else:
+            return tag, None
 
     @phi_constructor
     def __init__(self, **kwargs):
@@ -109,7 +123,7 @@ class PHI(GenericPHI):
                                                         _get_timeout()),
                                **xkv)
         self.tags = []
-        self.tags_t = {}
+        self.tag_types = {}
         self.fp = self.phi_cfg.get('fp')
         if self.phi_cfg.get('xv'):
             self._has_feature.value = True
@@ -120,52 +134,19 @@ class PHI(GenericPHI):
                     for tag in fh.readlines():
                         tag = tag.strip()
                         if tag:
-                            tt = tag.rsplit(':', 1)
-                            if len(tt) < 2:
-                                tt.append(None)
-                            self.tags.append(tt[0])
-                            self.tags_t[tt[0]] = tt[1]
+                            tag, tag_type = self._parse_tag(tag)
+                            self.tags.append(tag)
+                            if tag_type:
+                                self.tag_types[tag] = tag_type
             except:
                 log_traceback()
                 self.ready = False
-
-    def set(self, port=None, data=None, cfg=None, timeout=0):
-        try:
-            ops = []
-            for p, v in zip(port if isinstance(port, list) else [port],
-                            data if isinstance(data, list) else [data]):
-                rpx = p.rsplit(':', 1)
-                rp = rpx[0]
-                try:
-                    tp = rpx[1]
-                except:
-                    tp = cfg.get('type') if cfg else None
-                op = f'{rp}='
-                if not tp:
-                    tp = self.tags_t.get(p)
-                if tp:
-                    op += f'({tp.upper()})'
-                op += str(v[1]) if isinstance(v, tuple) or isinstance(
-                    v, list) else str(v)
-                ops.append(op)
-            self.log_debug(f'EnIP OP {" ".join(ops)}')
-            result = self.proxy.operate('write', ops)
-            success = True
-            for op, r in zip(ops, result):
-                if r is not True:
-                    self.log_error(f'tag set {op} error')
-                    success = False
-            return success
-        except:
-            log_traceback()
-            return False
 
     def get(self, port=None, cfg=None, timeout=0):
         try:
             result = {}
             if port:
-                port = port.rsplit(':', 1)[0]
-                ttg = [port]
+                ttg = [self._parse_tag(port)[0]]
             else:
                 ttg = self.tags
             if not ttg:
@@ -175,10 +156,13 @@ class PHI(GenericPHI):
                 try:
                     if v is not None:
                         if self._has_feature.value:
-                            try:
-                                value = round(v[0], self.fp)
-                            except:
-                                value = v[0]
+                            values = []
+                            for val in v if isinstance(v, list) else [v]:
+                                try:
+                                    values.append(round(val, self.fp))
+                                except:
+                                    values.append(val)
+                            value = ','.join([str(val) for val in values])
                         else:
                             value = v[0]
                         result[ttg[i]] = (1, str(
@@ -197,6 +181,32 @@ class PHI(GenericPHI):
         except:
             log_traceback()
             return None
+
+    def set(self, port=None, data=None, cfg=None, timeout=0):
+        try:
+            ops = []
+            for p, v in zip(port if isinstance(port, list) else [port],
+                            data if isinstance(data, list) else [data]):
+                tp = cfg.get('type') if cfg else None
+                op = f'{port}='
+                if not tp:
+                    tp = self.tags_t.get(p)
+                if tp:
+                    op += f'({tp.upper()})'
+                op += str(v[1]) if isinstance(v, tuple) or isinstance(
+                    v, list) else str(v)
+                ops.append(op)
+            self.log_warning(f'EnIP OP {" ".join(ops)}')
+            result = self.proxy.operate('write', ops)
+            success = True
+            for op, r in zip(ops, result):
+                if r is not True:
+                    self.log_error(f'tag set {op} error')
+                    success = False
+            return success
+        except:
+            log_traceback()
+            return False
 
     def get_ports(self):
         return [{
