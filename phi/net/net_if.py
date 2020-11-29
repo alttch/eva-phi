@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.3"
+__version__ = "1.1.0"
 __description__ = "Bandwidth meter/interface monitor"
 
 __api__ = 6
@@ -159,16 +159,25 @@ class PHI(GenericPHI):
                 data = self.create_session(timeout).walk(oid)
                 result = {}
                 for v in oid:
-                    o, p = v.tag.rsplit('.', 1)
-                    if o.endswith('.7'):
+                    if v.tag.startswith('iso.') or v.tag.startswith(
+                            '1.') or v.tag.startswith('.1.'):
+                        o, p = v.tag.rsplit('.', 1)
+                    else:
+                        o = v.tag
+                        p = v.iid
+                    if o == 'ifAdminStatus' or o.endswith('.7'):
                         if v.val.decode() not in ['1', '3']:
                             result[p + '_in'] = None
                             result[p + '_out'] = None
                     elif p not in result:
-                        port = ('in' if o.endswith('.10') else 'out') + '_' + p
+                        port = ('in' if o == 'ifInOctets' or o.endswith('.10')
+                                else 'out') + '_' + p
                         result[port] = calc_bw(port, int(v.val.decode()), rtime,
                                                v.type == 'COUNTER64')
                 return result
+            elif port is None:
+                self.log_warning('netsnmp required for bulk updates')
+                return None
             else:
                 time_start = perf_counter()
                 dr, n = port.split('_')
@@ -221,3 +230,6 @@ class PHI(GenericPHI):
                 'info': 'get equipment model/vendor',
                 'module': 'current SNMP module'
             }
+
+    def validate_config(self, config={}, config_type='config'):
+        self.validate_config_whi(config=config, config_type=config_type)
