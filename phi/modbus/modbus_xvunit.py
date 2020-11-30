@@ -213,6 +213,10 @@ class PHI(GenericPHI):
                             if b >> offset & 1:
                                 b = b ^ 1 << offset
                         fn_set(modbus_port, reg, [b], unit=self.unit_id)
+                        try:
+                            del self.cache[reg]
+                        except:
+                            pass
                 else:
                     value = transform_value(value,
                                             multiply=cfg.get('divide'),
