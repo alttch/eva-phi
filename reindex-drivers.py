@@ -18,7 +18,8 @@ eva_version = {
     6: '3.2.3',
     7: '3.2.4',
     8: '3.3.0',
-    9: '3.3.1'
+    9: '3.3.1',
+    10: '3.3.2'
 }
 
 files = sorted(os.popen('find ./phi -name "*.py"').readlines())
