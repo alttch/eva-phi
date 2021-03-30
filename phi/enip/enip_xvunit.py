@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.2.0'
+__version__ = '1.2.1'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
 __required__ = ['port_get', 'port_set', 'action']
@@ -196,7 +196,7 @@ class PHI(GenericPHI):
                 op += str(v[1]) if isinstance(v, tuple) or isinstance(
                     v, list) else str(v)
                 ops.append(op)
-            self.log_warning(f'EnIP OP {" ".join(ops)}')
+            self.log_debug(f'EnIP OP {" ".join(ops)}')
             result = self.proxy.operate('write', ops)
             success = True
             for op, r in zip(ops, result):
