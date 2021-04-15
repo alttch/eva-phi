@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.2.0'
+__version__ = '1.2.2'
 __description__ = 'Ethernet/IP sensors generic'
 __api__ = 9
 __required__ = ['port_get', 'value']
@@ -92,7 +92,7 @@ class PHI(GenericPHI):
     def __init__(self, **kwargs):
 
         def _get_timeout():
-            t = get_timeout() - 2
+            t = (get_timeout() - 1) / 2
             return t if t > 0 else 1
 
         xkv = {}
