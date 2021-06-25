@@ -53,7 +53,7 @@ Optionally:
     _round = round value to digits after comma
 
 valid types: u16 (default for inputs and holdings), i16, u32, i32, u64, i64,
-f32 (IEE 754a 32-bit float)
+f32 (IEEE 754a 32-bit float)
 
 coils are returned as integers (0/1)
 
