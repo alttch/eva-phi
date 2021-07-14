@@ -2,7 +2,7 @@ __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
 __version__ = "1.0.0"
-__description__ = "Modbus sensors generic"
+__description__ = "Modbus units generic"
 
 __api__ = 10
 __required__ = ['port_get', 'port_set', 'action']
