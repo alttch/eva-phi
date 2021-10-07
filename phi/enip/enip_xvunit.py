@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.2.3'
+__version__ = '1.2.4'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
 __required__ = ['port_get', 'port_set', 'action']
@@ -204,8 +204,12 @@ class PHI(GenericPHI):
                 if not tp:
                     tp = self.tag_types.get(p)
                 if tp == 'BOOL':
-                    tag, bit = p.rsplit('[', 1)
-                    bit = bit[:-1]
+                    if p.endswith(']'):
+                        tag, bit = p.rsplit('[', 1)
+                        bit = bit[:-1]
+                    else:
+                        tag = p
+                        bit = '0'
                     val = v[1] if isinstance(v, tuple) or isinstance(
                         v, list) else v
                     bitman_ops.append([tag, bit, val])
