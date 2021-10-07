@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.2.2'
+__version__ = '1.2.3'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
 __required__ = ['port_get', 'port_set', 'action']
@@ -80,13 +80,18 @@ not even try to connect to En/IP equipment (default is core timeout - 2 sec).
 
 Arrays: specify port as TAG[x] for a single value or TAG[x-y] for the value
 range (will be get/set as a list, splitted with commas)
+
+For bit-set operations requires bitman (https://github.com/alttch/bitman)
+executable to be put in EVA ICS runtime dir. Ports should have format
+TAG[bit-index].
 """
 
-import os
+import os, subprocess
 
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
 from eva.uc.driverapi import log_traceback, get_timeout, phi_constructor
 from eva.exceptions import InvalidParameter
+from eva.core import dir_runtime
 
 
 class PHI(GenericPHI):
@@ -110,18 +115,25 @@ class PHI(GenericPHI):
             return t if t > 0 else 1
 
         xkv = {}
+        self.bitman = [f'{dir_runtime}/bitman']
         if self.phi_cfg.get('simple'):
             xkv['route_path'] = False
             xkv['send_path'] = ''
         else:
-            xkv['route_path'] = self.phi_cfg.get('route_path')
+            route_path = self.phi_cfg.get('route_path')
+            xkv['route_path'] = route_path
+            if route_path:
+                self.bitman.append(xkv['route_path'].replace('/', ','))
             xkv['send_path'] = self.phi_cfg.get('send_path')
         from eva.uc.drivers.tools.cpppo_enip import SafeProxy
-        self.proxy = SafeProxy(host=self.phi_cfg.get('host'),
-                               port=self.phi_cfg.get('port'),
+        host = self.phi_cfg.get('host')
+        port = self.phi_cfg.get('port')
+        self.proxy = SafeProxy(host=host,
+                               port=port,
                                timeout=self.phi_cfg.get('timeout',
                                                         _get_timeout()),
                                **xkv)
+        self.bitman.append(f'{host}:{port}')
         self.tags = []
         self.tag_types = {}
         self.fp = self.phi_cfg.get('fp')
@@ -185,24 +197,43 @@ class PHI(GenericPHI):
     def set(self, port=None, data=None, cfg=None, timeout=0):
         try:
             ops = []
+            bitman_ops = []
             for p, v in zip(port if isinstance(port, list) else [port],
                             data if isinstance(data, list) else [data]):
                 tp = cfg.get('type') if cfg else None
-                op = f'{port}='
                 if not tp:
-                    tp = self.tags_t.get(p)
-                if tp:
-                    op += f'({tp.upper()})'
-                op += str(v[1]) if isinstance(v, tuple) or isinstance(
-                    v, list) else str(v)
-                ops.append(op)
-            self.log_debug(f'EnIP OP {" ".join(ops)}')
-            result = self.proxy.operate('write', ops)
+                    tp = self.tag_types.get(p)
+                if tp == 'BOOL':
+                    tag, bit = p.rsplit('[', 1)
+                    bit = bit[:-1]
+                    val = v[1] if isinstance(v, tuple) or isinstance(
+                        v, list) else v
+                    bitman_ops.append([tag, bit, val])
+                else:
+                    op = f'{port}='
+                    if tp:
+                        op += f'({tp.upper()})'
+                    op += str(v[1]) if isinstance(v, tuple) or isinstance(
+                        v, list) else str(v)
+                    ops.append(op)
             success = True
-            for op, r in zip(ops, result):
-                if r is not True:
-                    self.log_error(f'tag set {op} error')
-                    success = False
+            if ops:
+                self.log_debug(f'EnIP OP {" ".join(ops)}')
+                result = self.proxy.operate('write', ops)
+                for op, r in zip(ops, result):
+                    if r is not True:
+                        self.log_error(f'tag set {op} error')
+                        success = False
+            if bitman_ops:
+                for op in bitman_ops:
+                    args = self.bitman + op + ['--timeout', str(timeout)]
+                    self.log_debug(f'executing {" ".join(args)}')
+                    p = subprocess.run(args,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+                    if p.returncode != 0:
+                        self.log_error(p.stderr)
+                        success = False
             return success
         except:
             log_traceback()
