@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.2.4'
+__version__ = '1.2.5'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
 __required__ = ['port_get', 'port_set', 'action']
@@ -81,9 +81,11 @@ not even try to connect to En/IP equipment (default is core timeout - 2 sec).
 Arrays: specify port as TAG[x] for a single value or TAG[x-y] for the value
 range (will be get/set as a list, splitted with commas)
 
-For bit-set operations requires bitman (https://github.com/alttch/bitman)
+For bit operations requires bitman (https://github.com/alttch/bitman)
 executable to be put in EVA ICS runtime dir. Ports should have format
 TAG[bit-index].
+
+Bit-get operations are suppored on a single port only.
 """
 
 import os, subprocess
@@ -156,13 +158,38 @@ class PHI(GenericPHI):
 
     def get(self, port=None, cfg=None, timeout=0):
         try:
-            result = {}
             if port:
-                ttg = [self._parse_tag(port)[0]]
+                tag, tp = self._parse_tag(port)
+                if not tp:
+                    tp = cfg.get('type') if cfg else None
+                    if not tp:
+                        tp = self.tag_types.get(tag)
+                if tp == 'BOOL':
+                    if tag.endswith(']'):
+                        tag, bit = tag.rsplit('[', 1)
+                        bit = bit[:-1]
+                    else:
+                        bit = '0'
+                    args = self.bitman + [tag, bit, '--timeout', str(timeout)]
+                    self.log_debug(f'executing {" ".join(args)}')
+                    p = subprocess.run(args,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+                    if p.returncode != 0:
+                        self.log_error(p.stderr)
+                    else:
+                        result = int(p.stdout)
+                        if self._has_feature.value:
+                            return 1, result
+                        else:
+                            return result
+                else:
+                    ttg = [tag]
             else:
                 ttg = self.tags
             if not ttg:
                 return None
+            result = {}
             data = self.proxy.operate('read', ttg)
             for i, v in enumerate(data):
                 try:
@@ -212,7 +239,7 @@ class PHI(GenericPHI):
                         bit = '0'
                     val = v[1] if isinstance(v, tuple) or isinstance(
                         v, list) else v
-                    bitman_ops.append([tag, bit, val])
+                    bitman_ops.append([tag, bit, str(val)])
                 else:
                     op = f'{port}='
                     if tp:

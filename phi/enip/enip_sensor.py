@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.2.2'
+__version__ = '1.2.5'
 __description__ = 'Ethernet/IP sensors generic'
 __api__ = 9
 __required__ = ['port_get', 'value']
@@ -66,13 +66,20 @@ updates.
 
 Arrays: specify port as TAG[x] for a single value or TAG[x-y] for the value
 range (will be get/set as a list, splitted with commas)
+
+For bit operations requires bitman (https://github.com/alttch/bitman)
+executable to be put in EVA ICS runtime dir. Ports should have format
+TAG[bit-index].
+
+Bit-get operations are suppored on a single port only.
 """
 
-import os
+import os, subprocess
 
 from eva.uc.drivers.phi.generic_phi import PHI as GenericPHI
 from eva.uc.driverapi import log_traceback, get_timeout, phi_constructor
 from eva.exceptions import InvalidParameter
+from eva.core import dir_runtime
 
 
 class PHI(GenericPHI):
@@ -96,18 +103,25 @@ class PHI(GenericPHI):
             return t if t > 0 else 1
 
         xkv = {}
+        self.bitman = [f'{dir_runtime}/bitman']
         if self.phi_cfg.get('simple'):
             xkv['route_path'] = False
             xkv['send_path'] = ''
         else:
-            xkv['route_path'] = self.phi_cfg.get('route_path')
+            route_path = self.phi_cfg.get('route_path')
+            xkv['route_path'] = route_path
+            if route_path:
+                self.bitman.append(xkv['route_path'].replace('/', ','))
             xkv['send_path'] = self.phi_cfg.get('send_path')
         from eva.uc.drivers.tools.cpppo_enip import SafeProxy
-        self.proxy = SafeProxy(host=self.phi_cfg.get('host'),
-                               port=self.phi_cfg.get('port'),
+        host = self.phi_cfg.get('host')
+        port = self.phi_cfg.get('port')
+        self.proxy = SafeProxy(host=host,
+                               port=port,
                                timeout=self.phi_cfg.get('timeout',
                                                         _get_timeout()),
                                **xkv)
+        self.bitman.append(f'{host}:{port}')
         self.tags = []
         self.fp = self.phi_cfg.get('fp')
         if 'taglist' in self.phi_cfg:
@@ -124,13 +138,36 @@ class PHI(GenericPHI):
 
     def get(self, port=None, cfg=None, timeout=0):
         try:
-            result = {}
             if port:
-                ttg = [self._parse_tag(port)[0]]
+                tag, tp = self._parse_tag(port)
+                if not tp:
+                    tp = cfg.get('type') if cfg else None
+                if tp == 'BOOL':
+                    if tag.endswith(']'):
+                        tag, bit = tag.rsplit('[', 1)
+                        bit = bit[:-1]
+                    else:
+                        bit = '0'
+                    args = self.bitman + [tag, bit, '--timeout', str(timeout)]
+                    self.log_debug(f'executing {" ".join(args)}')
+                    p = subprocess.run(args,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+                    if p.returncode != 0:
+                        self.log_error(p.stderr)
+                    else:
+                        result = int(p.stdout)
+                        if self._has_feature.value:
+                            return 1, result
+                        else:
+                            return result
+                else:
+                    ttg = [tag]
             else:
                 ttg = self.tags
             if not ttg:
                 return None
+            result = {}
             data = self.proxy.operate('read', ttg)
             for i, v in enumerate(data):
                 if v is not None:
