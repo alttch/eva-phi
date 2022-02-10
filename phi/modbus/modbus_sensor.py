@@ -1,7 +1,7 @@
 __author__ = "Altertech Group, https://www.altertech.com/"
 __copyright__ = "Copyright (C) 2012-2018 Altertech Group"
 __license__ = "Apache License 2.0"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __description__ = "Modbus sensors generic"
 
 __api__ = 10
@@ -53,7 +53,7 @@ Optionally:
     _round = round value to digits after comma
 
 valid types: u16 (default for inputs and holdings), i16, u32, i32, u64, i64,
-f32 (IEEE 754a 32-bit float)
+f32 (IEEE 754a 32-bit float), vNN - vector (hex string, NN = number of bytes)
 
 coils are returned as integers (0/1)
 
@@ -120,6 +120,19 @@ class PHI(GenericPHI):
                     modbus_port, port, unit=self.unit_id)[0] else 0
             else:
                 data_type = cfg.get('type', 'u16')
+                if data_type.startswith('v'):
+                    import math
+                    try:
+                        size = math.ceil(int(data_type[1:]) / 2)
+                    except Exception as e:
+                        self.log_error(f'invalid size: {e}')
+                        log_traceback()
+                        return None
+                    val = modbus.read_u16(modbus_port,
+                                          port,
+                                          count=size,
+                                          unit=self.unit_id)
+                    return b''.join([x.to_bytes(2, 'big') for x in val]).hex()
                 try:
                     fn = self._getter_functions[data_type]
                 except KeyError:
