@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.2.5'
+__version__ = '1.2.6'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
 __required__ = ['port_get', 'port_set', 'action']
@@ -56,6 +56,11 @@ __config_help__ = [{
     'help': 'Sync tags and unit values only',
     'type': 'bool',
     'required': False
+}, {
+    'name': 'disable_type_parsing',
+    'help': 'Disable parsing tag types as TAG:TYPE but allow : in tag names',
+    'type': 'bool',
+    'required': False
 }]
 __get_help__ = []
 __set_help__ = []
@@ -98,9 +103,8 @@ from eva.core import dir_runtime
 
 class PHI(GenericPHI):
 
-    @staticmethod
-    def _parse_tag(tag):
-        if ':' in tag:
+    def _parse_tag(self, tag):
+        if not self.disable_type_parsing and ':' in tag:
             tag, tt = tag.rsplit(':', 1)
             if '[' in tt:
                 tt, sfx = tt.split('[', 1)
@@ -142,6 +146,8 @@ class PHI(GenericPHI):
         if self.phi_cfg.get('xv'):
             self._has_feature.value = True
             self._is_required.value = True
+        self.disable_type_parsing = self.phi_cfg.get('disable_type_parsing',
+                                                     False)
         if 'taglist' in self.phi_cfg:
             try:
                 with open(self.phi_cfg.get('taglist')) as fh:
