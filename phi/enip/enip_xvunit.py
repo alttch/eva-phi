@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.2.6'
+__version__ = '1.2.7'
 __description__ = 'Ethernet/IP units generic'
 __api__ = 9
 __required__ = ['port_get', 'port_set', 'action']
@@ -173,10 +173,17 @@ class PHI(GenericPHI):
                 if tp == 'BOOL':
                     if tag.endswith(']'):
                         tag, bit = tag.rsplit('[', 1)
-                        bit = bit[:-1]
+                        bit = int(bit[:-1])
+                        tag_idx = bit // 32
+                        if tag_idx > 0:
+                            tag = f'{tag}[{tag_idx}]'
+                            bit -= tag_idx * 32
                     else:
-                        bit = '0'
-                    args = self.bitman + [tag, bit, '--timeout', str(timeout)]
+                        bit = 0
+                    args = self.bitman + [
+                        tag, str(bit), '--timeout',
+                        str(timeout)
+                    ]
                     self.log_debug(f'executing {" ".join(args)}')
                     p = subprocess.run(args,
                                        stdout=subprocess.PIPE,
@@ -239,13 +246,17 @@ class PHI(GenericPHI):
                 if tp == 'BOOL':
                     if p.endswith(']'):
                         tag, bit = p.rsplit('[', 1)
-                        bit = bit[:-1]
+                        bit = int(bit[:-1])
+                        tag_idx = bit // 32
+                        if tag_idx > 0:
+                            tag = f'{tag}[{tag_idx}]'
+                            bit -= tag_idx * 32
                     else:
                         tag = p
-                        bit = '0'
+                        bit = 0
                     val = v[1] if isinstance(v, tuple) or isinstance(
                         v, list) else v
-                    bitman_ops.append([tag, bit, str(val)])
+                    bitman_ops.append([tag, str(bit), str(val)])
                 else:
                     op = f'{port}='
                     if tp:
