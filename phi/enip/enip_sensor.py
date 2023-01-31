@@ -1,7 +1,7 @@
 __author__ = 'Altertech, https://www.altertech.com/'
 __copyright__ = 'Altertech'
 __license__ = 'GNU GPL v3'
-__version__ = '1.2.6'
+__version__ = '1.2.7'
 __description__ = 'Ethernet/IP sensors generic'
 __api__ = 9
 __required__ = ['port_get', 'value']
@@ -151,10 +151,17 @@ class PHI(GenericPHI):
                 if tp == 'BOOL':
                     if tag.endswith(']'):
                         tag, bit = tag.rsplit('[', 1)
-                        bit = bit[:-1]
+                        bit = int(bit[:-1])
+                        tag_idx = bit // 32
+                        if tag_idx > 0:
+                            tag = f'{tag}[{tag_idx}]'
+                            bit -= tag_idx * 32
                     else:
-                        bit = '0'
-                    args = self.bitman + [tag, bit, '--timeout', str(timeout)]
+                        bit = 0
+                    args = self.bitman + [
+                        tag, str(bit), '--timeout',
+                        str(timeout)
+                    ]
                     self.log_debug(f'executing {" ".join(args)}')
                     p = subprocess.run(args,
                                        stdout=subprocess.PIPE,
